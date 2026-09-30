@@ -1,0 +1,324 @@
+{
+  "schemaVersion": 2,
+  "region": "cn",
+  "scope": {
+    "jurisdictions": [
+      "CN"
+    ],
+    "languages": [
+      "zh"
+    ]
+  },
+  "rules": [
+    {
+      "id": "regex:cn:resident_id",
+      "entityType": "SSN",
+      "pattern": "\\b\\d{6}(?:19|20)\\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\\d|3[01])\\d{3}[\\dXx]\\b",
+      "flags": "g",
+      "confidence": 0.9,
+      "domains": [
+        "identity"
+      ],
+      "classification": {
+        "category": "identity",
+        "subtype": "national_id",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Chinese Resident Identity Card number (18 digits)",
+      "examples": [
+        "110101199003070003"
+      ]
+    },
+    {
+      "id": "regex:cn:passport",
+      "entityType": "SSN",
+      "pattern": "\\b[GDE]\\d{8}\\b",
+      "flags": "g",
+      "confidence": 0.75,
+      "domains": [
+        "identity"
+      ],
+      "classification": {
+        "category": "identity",
+        "subtype": "passport",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Chinese passport number (G/D/E + 8 digits)",
+      "examples": [
+        "G12345678",
+        "E00000001"
+      ]
+    },
+    {
+      "id": "regex:cn:bank_card",
+      "entityType": "OTHER",
+      "pattern": "\\b\\d{15,19}\\b",
+      "flags": "g",
+      "confidence": 0.4,
+      "domains": [
+        "financial"
+      ],
+      "classification": {
+        "category": "financialAccount",
+        "subtype": "payment_card",
+        "applicability": "baseline",
+        "verticals": [
+          "finance"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Chinese bank card number (15-19 digits)",
+      "examples": [
+        "6222021234567890123"
+      ],
+      "falsePositiveNotes": "Any 15-19 digit run matches; low confidence by design"
+    },
+    {
+      "id": "regex:cn:uscc",
+      "entityType": "SSN",
+      "pattern": "\\b[0-9A-Z]{18}\\b",
+      "flags": "g",
+      "confidence": 0.6,
+      "domains": [
+        "identity",
+        "financial"
+      ],
+      "classification": {
+        "category": "businessRecord",
+        "subtype": "business_registration",
+        "applicability": "specialized",
+        "verticals": [
+          "finance"
+        ],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Chinese Unified Social Credit Code (18 alphanumeric)",
+      "examples": [
+        "91110000710921000K"
+      ]
+    },
+    {
+      "id": "regex:cn:phone_mobile",
+      "entityType": "PHONE",
+      "pattern": "\\b(?:\\+?86[\\s-]?)?1[3-9]\\d[\\s-]?\\d{4}[\\s-]?\\d{4}\\b",
+      "flags": "g",
+      "confidence": 0.85,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "contact",
+        "subtype": "mobile_phone",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Chinese mobile phone number (1XX-XXXX-XXXX, optionally with +86)",
+      "examples": [
+        "+86 138 1234 5678",
+        "13812345678"
+      ]
+    },
+    {
+      "id": "regex:cn:phone_landline",
+      "entityType": "PHONE",
+      "pattern": "\\b0\\d{2,3}[\\s-]?\\d{7,8}\\b",
+      "flags": "g",
+      "confidence": 0.8,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "contact",
+        "subtype": "landline_phone",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Chinese landline phone number (0XX-XXXXXXXX)",
+      "examples": [
+        "010-12345678",
+        "021-87654321"
+      ]
+    },
+    {
+      "id": "regex:cn:postal",
+      "entityType": "ADDRESS",
+      "pattern": "\\b\\d{6}\\b",
+      "flags": "g",
+      "confidence": 0.35,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "location",
+        "subtype": "postal_code",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Chinese postal code (6 digits)",
+      "examples": [
+        "100000",
+        "200000"
+      ],
+      "falsePositiveNotes": "Any standalone 6-digit number matches; low confidence by design"
+    },
+    {
+      "id": "regex:cn:currency_hanzi",
+      "entityType": "CURRENCY",
+      "pattern": "[零壹贰叁肆伍陆柒捌玖拾佰仟萬億一二三四五六七八九十百千万亿]+\\s*(?:元|圆|块)",
+      "flags": "g",
+      "confidence": 0.9,
+      "domains": [
+        "financial"
+      ],
+      "classification": {
+        "category": "financialValue",
+        "subtype": "amount",
+        "applicability": "specialized",
+        "verticals": [
+          "finance"
+        ],
+        "protectionLevel": "optional",
+        "defaultAction": "detectOnly",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Chinese amount in hanzi numerals + yuan sign (e.g., 捌仟伍佰元)",
+      "examples": [
+        "捌仟伍佰元",
+        "八千五百元"
+      ]
+    },
+    {
+      "id": "regex:cn:address",
+      "entityType": "ADDRESS",
+      "pattern": "[\\u4E00-\\u9FFF]{2,4}[省市][\\u4E00-\\u9FFF]+[市区區县縣](?:[\\u4E00-\\u9FFF]{1,15}?\\d+号(?:\\d+(?:栋|幢|座|楼|层|室|单元))*|[\\u4E00-\\u9FFF]{1,12}?(?:路|街|大道|巷|弄|村|镇|乡|园区|大厦|广场))?",
+      "flags": "g",
+      "confidence": 0.85,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "location",
+        "subtype": "address",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Chinese address: province/city (2-4 characters) + district + street, ending at the house number or a street word (Docudis change: the original prefix and tail were unbounded, so 陳大文先生將於臺北市信義區 or 杭州市…969号阿里巴巴西溪园区 became one address; in prose up to two characters before the city still leak in, \"前往上海市…\")",
+      "examples": [
+        "北京市朝阳区建国路1号",
+        "广东省深圳市南山区科技园南路88号3栋502室",
+        "臺北市信義區"
+      ]
+    },
+    {
+      "id": "regex:cn:company",
+      "entityType": "COMPANY",
+      "pattern": "[\\u4E00-\\u9FFF][\\u4E00-\\u9FFF \\t\\u00A0]+(?:有限公司|股份有限公司|集团|有限责任公司)",
+      "flags": "g",
+      "confidence": 0.9,
+      "domains": [
+        "general"
+      ],
+      "classification": {
+        "category": "organization",
+        "subtype": "company",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Chinese company name with legal form (Docudis change: no line break inside the name)",
+      "examples": [
+        "阿里巴巴集团",
+        "华为技术有限公司",
+        "腾讯科技股份有限公司"
+      ]
+    },
+    {
+      "id": "regex:cn:date_cjk",
+      "entityType": "DATE",
+      "pattern": "(?:19|20)\\d{2}\\s?年\\s?(?:1[0-2]|0?[1-9])\\s?月(?:\\s?(?:3[01]|[12]\\d|0?[1-9])\\s?[日号])?",
+      "flags": "g",
+      "confidence": 0.9,
+      "domains": [
+        "general"
+      ],
+      "classification": {
+        "category": "temporal",
+        "subtype": "date_words",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "optional",
+        "defaultAction": "contextual",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "Chinese/Japanese date written with 年/月/日 (Docudis addition)",
+      "examples": [
+        "2024年3月15日",
+        "2025年1月31日",
+        "2024年10月",
+        "2024 年 9 月 12 日"
+      ]
+    },
+    {
+      "id": "regex:cn:date_month_day",
+      "entityType": "DATE",
+      "pattern": "(?<![\\d年])(?:1[0-2]|0?[1-9])\\s?月\\s?(?:3[01]|[12]\\d|0?[1-9])\\s?[日号]",
+      "flags": "g",
+      "confidence": 0.7,
+      "domains": [
+        "general"
+      ],
+      "classification": {
+        "category": "temporal",
+        "subtype": "month_day",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "optional",
+        "defaultAction": "contextual",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "Chinese month-day without a year, e.g. 9月3日 (Docudis addition)",
+      "examples": [
+        "9月3日",
+        "12月25号"
+      ]
+    }
+  ]
+}

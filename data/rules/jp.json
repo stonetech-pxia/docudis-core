@@ -1,0 +1,239 @@
+{
+  "schemaVersion": 2,
+  "region": "jp",
+  "scope": {
+    "jurisdictions": [
+      "JP"
+    ],
+    "languages": [
+      "ja"
+    ]
+  },
+  "rules": [
+    {
+      "id": "regex:jp:my_number",
+      "entityType": "SSN",
+      "pattern": "\\b\\d{4}\\s?\\d{4}\\s?\\d{4}\\b",
+      "flags": "g",
+      "confidence": 0.7,
+      "domains": [
+        "identity"
+      ],
+      "classification": {
+        "category": "identity",
+        "subtype": "national_id",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Japanese My Number (individual number, 12 digits)",
+      "examples": [
+        "1234 5678 9012"
+      ]
+    },
+    {
+      "id": "regex:jp:passport",
+      "entityType": "SSN",
+      "pattern": "\\b[A-Z]{2}\\d{7}\\b",
+      "flags": "g",
+      "confidence": 0.7,
+      "domains": [
+        "identity"
+      ],
+      "classification": {
+        "category": "identity",
+        "subtype": "passport",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Japanese passport number (2 letters + 7 digits)",
+      "examples": [
+        "TK1234567"
+      ]
+    },
+    {
+      "id": "regex:jp:corporate_number",
+      "entityType": "SSN",
+      "pattern": "\\b\\d{13}\\b",
+      "flags": "g",
+      "confidence": 0.5,
+      "domains": [
+        "identity",
+        "financial"
+      ],
+      "classification": {
+        "category": "businessRecord",
+        "subtype": "business_registration",
+        "applicability": "specialized",
+        "verticals": [
+          "finance"
+        ],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Japanese corporate number (houjin bangou, 13 digits)",
+      "examples": [
+        "1234567890123"
+      ]
+    },
+    {
+      "id": "regex:jp:phone",
+      "entityType": "PHONE",
+      "pattern": "\\b0\\d{1,4}[\\s-]?\\d{1,4}[\\s-]?\\d{3,4}\\b",
+      "flags": "g",
+      "confidence": 0.8,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "contact",
+        "subtype": "phone",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Japanese phone number (0X-XXXX-XXXX, variable area code length)",
+      "examples": [
+        "03-1234-5678",
+        "090-1234-5678",
+        "0120-123-456"
+      ]
+    },
+    {
+      "id": "regex:jp:postal",
+      "entityType": "ADDRESS",
+      "pattern": "\\b\\d{3}-?\\d{4}\\b",
+      "flags": "g",
+      "confidence": 0.65,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "location",
+        "subtype": "postal_code",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Japanese postal code (XXX-XXXX)",
+      "examples": [
+        "100-0001",
+        "1600023"
+      ]
+    },
+    {
+      "id": "regex:jp:currency_kanji",
+      "entityType": "CURRENCY",
+      "pattern": "[一二三四五六七八九十百千万億兆]+\\s*円",
+      "flags": "g",
+      "confidence": 0.9,
+      "domains": [
+        "financial"
+      ],
+      "classification": {
+        "category": "financialValue",
+        "subtype": "amount",
+        "applicability": "specialized",
+        "verticals": [
+          "finance"
+        ],
+        "protectionLevel": "optional",
+        "defaultAction": "detectOnly",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Japanese amount in kanji numerals + yen sign (e.g., 八千五百円)",
+      "examples": [
+        "八千五百円"
+      ]
+    },
+    {
+      "id": "regex:jp:address",
+      "entityType": "ADDRESS",
+      "pattern": "[\\u4E00-\\u9FFF]+[都道府県][\\u4E00-\\u9FFF]+[市区町村郡][\\u4E00-\\u9FFF\\d-]+",
+      "flags": "g",
+      "confidence": 0.85,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "location",
+        "subtype": "address",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Japanese address (prefecture + city/ward + district)",
+      "examples": [
+        "東京都千代田区丸の内1-1-1"
+      ]
+    },
+    {
+      "id": "regex:jp:company_prefix",
+      "entityType": "COMPANY",
+      "pattern": "(?:株式会社|有限会社|合同会社|合名会社|合資会社)\\s*[\\u4E00-\\u9FFF\\p{L} \\t\\u00A0]+",
+      "flags": "gu",
+      "confidence": 0.9,
+      "domains": [
+        "general"
+      ],
+      "classification": {
+        "category": "organization",
+        "subtype": "company",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Japanese company with legal prefix (kabushiki gaisha etc.) (Docudis change: no line break inside the name)",
+      "examples": [
+        "株式会社トヨタ自動車",
+        "有限会社田中商店"
+      ]
+    },
+    {
+      "id": "regex:jp:company_suffix",
+      "entityType": "COMPANY",
+      "pattern": "[\\u4E00-\\u9FFF\\p{L}][\\u4E00-\\u9FFF\\p{L} \\t\\u00A0]+(?:株式会社|有限会社|合同会社)",
+      "flags": "gu",
+      "confidence": 0.9,
+      "domains": [
+        "general"
+      ],
+      "classification": {
+        "category": "organization",
+        "subtype": "company",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Japanese company with legal suffix (name + kabushiki gaisha) (Docudis change: no line break inside the name)",
+      "examples": [
+        "トヨタ自動車株式会社"
+      ]
+    }
+  ]
+}

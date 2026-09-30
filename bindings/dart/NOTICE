@@ -1,0 +1,10 @@
+Docudis Dart FFI binding
+Copyright 2026 the Docudis contributors
+
+Includes migrated portions of:
+
+DocCloak.Core
+Copyright 2026 Witold Lojek
+
+Licensed under Apache-2.0. The authoritative upstream notice and license are
+preserved at ../../NOTICE-DocCloak.Core and ../../LICENSE-DocCloak.Core.

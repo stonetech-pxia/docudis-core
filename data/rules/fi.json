@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 2,
+  "region": "fi",
+  "scope": {
+    "jurisdictions": [
+      "FI"
+    ],
+    "languages": [
+      "fi",
+      "sv"
+    ]
+  },
+  "rules": [
+    {
+      "id": "regex:fi:hetu",
+      "entityType": "SSN",
+      "pattern": "\\b(?:0[1-9]|[12]\\d|3[01])(?:0[1-9]|1[0-2])\\d{2}[ABCDEFYXWVU+-]\\d{3}[\\dA-FHJK-NPR-Y]\\b",
+      "flags": "gi",
+      "confidence": 0.9,
+      "domains": [
+        "identity",
+        "hr"
+      ],
+      "classification": {
+        "category": "identity",
+        "subtype": "social_security_number",
+        "applicability": "baseline",
+        "verticals": [
+          "employment"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Finnish personal identity code (henkilötunnus / HETU)",
+      "examples": [
+        "131052-308T"
+      ],
+      "validate": "hetu"
+    },
+    {
+      "id": "regex:fi:phone",
+      "entityType": "PHONE",
+      "pattern": "\\b(?:\\+?358[\\s-]?|0)[1-9]\\d?[\\s-]?\\d{3,4}[\\s-]?\\d{3,4}\\b",
+      "flags": "g",
+      "confidence": 0.8,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "contact",
+        "subtype": "phone",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Finnish phone number"
+    },
+    {
+      "id": "regex:fi:postal-city",
+      "entityType": "ADDRESS",
+      "pattern": "\\b\\d{5}\\s+[\\p{L}][\\p{L} \\t\\u00A0-]+\\b",
+      "flags": "gu",
+      "confidence": 0.8,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "location",
+        "subtype": "postal_code",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Finnish postal code followed by city name (Docudis change: no line break inside the name)"
+    }
+  ]
+}

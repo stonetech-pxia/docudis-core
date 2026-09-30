@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 2,
+  "region": "dk",
+  "scope": {
+    "jurisdictions": [
+      "DK"
+    ],
+    "languages": [
+      "da"
+    ]
+  },
+  "rules": [
+    {
+      "id": "regex:dk:cpr-number",
+      "entityType": "SSN",
+      "pattern": "\\b(?:0[1-9]|[12]\\d|3[01])(?:0[1-9]|1[0-2])\\d{2}[-\\s]?\\d{4}\\b",
+      "flags": "g",
+      "confidence": 0.8,
+      "domains": [
+        "identity",
+        "hr"
+      ],
+      "classification": {
+        "category": "identity",
+        "subtype": "social_security_number",
+        "applicability": "baseline",
+        "verticals": [
+          "employment"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Danish CPR (Central Person Register) number",
+      "examples": [
+        "010190-1234"
+      ],
+      "falsePositiveNotes": "Post-2007 CPR numbers may not satisfy modulo-11 check"
+    },
+    {
+      "id": "regex:dk:phone",
+      "entityType": "PHONE",
+      "pattern": "\\b(?:\\+?45[\\s-]?)?\\d{2}[\\s-]?\\d{2}[\\s-]?\\d{2}[\\s-]?\\d{2}\\b",
+      "flags": "g",
+      "confidence": 0.75,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "contact",
+        "subtype": "phone",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Danish phone number"
+    },
+    {
+      "id": "regex:dk:postal-city",
+      "entityType": "ADDRESS",
+      "pattern": "\\b\\d{4}\\s+[\\p{L}][\\p{L} \\t\\u00A0-]+\\b",
+      "flags": "gu",
+      "confidence": 0.8,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "location",
+        "subtype": "postal_code",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Danish postal code followed by city name (Docudis change: no line break inside the name)"
+    }
+  ]
+}

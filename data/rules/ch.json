@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 2,
+  "region": "ch",
+  "scope": {
+    "jurisdictions": [
+      "CH"
+    ],
+    "languages": [
+      "de",
+      "fr",
+      "it"
+    ]
+  },
+  "rules": [
+    {
+      "id": "regex:ch:ahv-avs-number",
+      "entityType": "SSN",
+      "pattern": "\\b756[.\\s]?\\d{4}[.\\s]?\\d{4}[.\\s]?\\d{2}\\b",
+      "flags": "g",
+      "confidence": 0.95,
+      "domains": [
+        "identity",
+        "hr",
+        "medical"
+      ],
+      "classification": {
+        "category": "identity",
+        "subtype": "social_security_number",
+        "applicability": "baseline",
+        "verticals": [
+          "employment",
+          "healthcare"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Swiss AHV/AVS social security number (new format, EAN-13 based)",
+      "examples": [
+        "756.1234.5678.97"
+      ],
+      "validate": "ahv"
+    },
+    {
+      "id": "regex:ch:phone",
+      "entityType": "PHONE",
+      "pattern": "\\b(?:\\+?41[\\s-]?|0)[1-9]\\d[\\s-]?\\d{3}[\\s-]?\\d{2}[\\s-]?\\d{2}\\b",
+      "flags": "g",
+      "confidence": 0.8,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "contact",
+        "subtype": "phone",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Swiss phone number"
+    },
+    {
+      "id": "regex:ch:postal-city",
+      "entityType": "ADDRESS",
+      "pattern": "(?<=^|[,:][ \\u00A0]|[-–][ \\u00A0])[1-9]\\d{3}[ \\u00A0]\\p{Lu}[\\p{L}'’-]*(?:[ \\u00A0-](?:(?:sur|sous|de|du|des|la|le|les|en|lès|aux|del|los|las)[ \\u00A0-])*\\p{Lu}[\\p{L}'’-]*)*(?![\\p{L}])",
+      "flags": "gmu",
+      "confidence": 0.75,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "location",
+        "subtype": "postal_code",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Swiss postal code followed by a capitalised city name (Docudis change 2026-09-18: four digits plus a capitalised word is also \"2025 Échéance\" or \"3500 Pièces\": the code must now start a line or follow a comma or dash, one space, a capitalised city; confidence below 0.8 so a date always wins)"
+    },
+    {
+      "id": "regex:ch:street-german",
+      "entityType": "ADDRESS",
+      "pattern": "[\\p{L}][\\p{L} \\t\\u00A0-]*(?:strasse|str\\.|weg|gasse|platz|allee|rain|matte)\\s+\\d+[\\p{L}]?",
+      "flags": "giu",
+      "confidence": 0.85,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "location",
+        "subtype": "street_address",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Swiss street address in German (e.g. Bahnhofstrasse 10) (Docudis change: no line break inside the name)"
+    },
+    {
+      "id": "regex:ch:street-french",
+      "entityType": "ADDRESS",
+      "pattern": "(?<![\\p{L}])(?:rue|avenue|chemin|route|place|boulevard)\\s+[\\p{L}][\\p{L} \\t\\u00A0'-]+\\s*\\d{1,4}(?!\\d)",
+      "flags": "giu",
+      "confidence": 0.85,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "location",
+        "subtype": "street_address",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Swiss street address in French (e.g. rue de Lausanne 12) (Docudis change: no line break inside the name) (Docudis change 2026-09-18: house numbers have at most four digits and the street word must start a word; see be:street)"
+    }
+  ]
+}

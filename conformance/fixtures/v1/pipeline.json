@@ -1,0 +1,1471 @@
+{
+  "schema_version": 1,
+  "license": "Apache-2.0",
+  "source": "current Dart DetectionPipeline reference implementation",
+  "generated_by": "packages/docudis_engine/tool/generate_rust_pipeline_conformance.dart",
+  "cases": [
+    {
+      "name": "strong_rule_beats_ner",
+      "text": "Call alice@example.com now",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "PERSON",
+          "value": "alice@example.com now",
+          "start_utf8": 5,
+          "end_utf8": 26,
+          "start_utf16": 5,
+          "end_utf16": 26,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "EMAIL",
+          "value": "alice@example.com",
+          "start_utf8": 5,
+          "end_utf8": 22,
+          "start_utf16": 5,
+          "end_utf16": 22,
+          "confidence": 0.95,
+          "detector": "fixture:strongRule",
+          "source": "strongRule",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "EMAIL",
+          "value": "alice@example.com",
+          "start_utf8": 5,
+          "end_utf8": 22,
+          "start_utf16": 5,
+          "end_utf16": 22,
+          "confidence": 0.95,
+          "detector": "fixture:strongRule",
+          "source": "strongRule",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "dictionary_yields_to_longer_hidden_name",
+      "text": "Jean Dupont signed",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "PERSON",
+          "value": "Jean Dupont",
+          "start_utf8": 0,
+          "end_utf8": 11,
+          "start_utf16": 0,
+          "end_utf16": 11,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "CUSTOM",
+          "value": "Dupont",
+          "start_utf8": 5,
+          "end_utf8": 11,
+          "start_utf16": 5,
+          "end_utf16": 11,
+          "confidence": 1.0,
+          "detector": "fixture:dictionary",
+          "source": "dictionary",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "PERSON",
+          "value": "Jean Dupont",
+          "start_utf8": 0,
+          "end_utf8": 11,
+          "start_utf16": 0,
+          "end_utf16": 11,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "never_hide_removes_covered_detection",
+      "text": "Leeds City Council and Alice",
+      "never_hide": [
+        "Leeds City Council"
+      ],
+      "candidates": [
+        {
+          "type": "ADDRESS",
+          "value": "Leeds City Council",
+          "start_utf8": 0,
+          "end_utf8": 18,
+          "start_utf16": 0,
+          "end_utf16": 18,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "Alice",
+          "start_utf8": 23,
+          "end_utf8": 28,
+          "start_utf16": 23,
+          "end_utf16": 28,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "PERSON",
+          "value": "Alice",
+          "start_utf8": 23,
+          "end_utf8": 28,
+          "start_utf16": 23,
+          "end_utf16": 28,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "user_dictionary_custom_entity",
+      "text": "Project Zephyr",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "CUSTOM",
+          "value": "Zephyr",
+          "start_utf8": 8,
+          "end_utf8": 14,
+          "start_utf16": 8,
+          "end_utf16": 14,
+          "confidence": 1.0,
+          "detector": "fixture:dictionary",
+          "source": "dictionary",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "CUSTOM",
+          "value": "Zephyr",
+          "start_utf8": 8,
+          "end_utf8": 14,
+          "start_utf16": 8,
+          "end_utf16": 14,
+          "confidence": 1.0,
+          "detector": "fixture:dictionary",
+          "source": "dictionary",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "birth_date_and_detect_only_defaults",
+      "text": "Born: 12/03/1990. Repeat 12/03/1990. Total €20",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "DATE",
+          "value": "12/03/1990",
+          "start_utf8": 6,
+          "end_utf8": 16,
+          "start_utf16": 6,
+          "end_utf16": 16,
+          "confidence": 0.9,
+          "detector": "fixture:strongRule",
+          "source": "strongRule",
+          "enabled": true
+        },
+        {
+          "type": "DATE",
+          "value": "12/03/1990",
+          "start_utf8": 25,
+          "end_utf8": 35,
+          "start_utf16": 25,
+          "end_utf16": 35,
+          "confidence": 0.9,
+          "detector": "fixture:strongRule",
+          "source": "strongRule",
+          "enabled": true
+        },
+        {
+          "type": "AMOUNT",
+          "value": "€20",
+          "start_utf8": 43,
+          "end_utf8": 48,
+          "start_utf16": 43,
+          "end_utf16": 46,
+          "confidence": 0.9,
+          "detector": "fixture:strongRule",
+          "source": "strongRule",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "BIRTH_DATE",
+          "value": "12/03/1990",
+          "start_utf8": 6,
+          "end_utf8": 16,
+          "start_utf16": 6,
+          "end_utf16": 16,
+          "confidence": 0.9,
+          "detector": "fixture:strongRule",
+          "source": "strongRule",
+          "enabled": true
+        },
+        {
+          "type": "BIRTH_DATE",
+          "value": "12/03/1990",
+          "start_utf8": 25,
+          "end_utf8": 35,
+          "start_utf16": 25,
+          "end_utf16": 35,
+          "confidence": 0.9,
+          "detector": "fixture:strongRule",
+          "source": "strongRule",
+          "enabled": true
+        },
+        {
+          "type": "AMOUNT",
+          "value": "€20",
+          "start_utf8": 43,
+          "end_utf8": 48,
+          "start_utf16": 43,
+          "end_utf16": 46,
+          "confidence": 0.9,
+          "detector": "fixture:strongRule",
+          "source": "strongRule",
+          "enabled": false
+        }
+      ]
+    },
+    {
+      "name": "repair_grows_validated_number_winner",
+      "text": "1234 5678 9012",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "CARD",
+          "value": "5678",
+          "start_utf8": 5,
+          "end_utf8": 9,
+          "start_utf16": 5,
+          "end_utf16": 9,
+          "confidence": 1.0,
+          "detector": "fixture:validatedRule",
+          "source": "validatedRule",
+          "enabled": true
+        },
+        {
+          "type": "NUMBER",
+          "value": "1234 5678 9012",
+          "start_utf8": 0,
+          "end_utf8": 14,
+          "start_utf16": 0,
+          "end_utf16": 14,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "CARD",
+          "value": "1234 5678 9012",
+          "start_utf8": 0,
+          "end_utf8": 14,
+          "start_utf16": 0,
+          "end_utf16": 14,
+          "confidence": 1.0,
+          "detector": "fixture:validatedRule",
+          "source": "validatedRule",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "repair_loser_text_is_not_exposed",
+      "text": "Mon numéro est le 2 88 03 44 109 042 17 et merci.",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "PHONE",
+          "value": "109 042 17",
+          "start_utf8": 30,
+          "end_utf8": 40,
+          "start_utf16": 29,
+          "end_utf16": 39,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "NUMBER",
+          "value": "2 88 03 44 109 042 17",
+          "start_utf8": 19,
+          "end_utf8": 40,
+          "start_utf16": 18,
+          "end_utf16": 39,
+          "confidence": 0.9,
+          "detector": "fixture:rule",
+          "source": "rule",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "NUMBER",
+          "value": "2 88 03 44 109 042 17",
+          "start_utf8": 19,
+          "end_utf8": 40,
+          "start_utf16": 18,
+          "end_utf16": 39,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "repair_joins_overlapping_company_parts",
+      "text": "Cession à FINANCIERE JL SAS le 3 mai.",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "COMPANY",
+          "value": "JL SAS",
+          "start_utf8": 22,
+          "end_utf8": 28,
+          "start_utf16": 21,
+          "end_utf16": 27,
+          "confidence": 0.9,
+          "detector": "fixture:strongRule",
+          "source": "strongRule",
+          "enabled": true
+        },
+        {
+          "type": "COMPANY",
+          "value": "FINANCIERE JL",
+          "start_utf8": 11,
+          "end_utf8": 24,
+          "start_utf16": 10,
+          "end_utf16": 23,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "COMPANY",
+          "value": "FINANCIERE JL SAS",
+          "start_utf8": 11,
+          "end_utf8": 28,
+          "start_utf16": 10,
+          "end_utf16": 27,
+          "confidence": 0.9,
+          "detector": "fixture:strongRule",
+          "source": "strongRule",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "repair_capitals_and_name_particle",
+      "text": "Apoderado: MARIA GADOR CANO ENCISO. Revocado: DEL AGUILA CAZORLA MARIA.",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "PERSON",
+          "value": "MARIA GADOR CANO",
+          "start_utf8": 11,
+          "end_utf8": 27,
+          "start_utf16": 11,
+          "end_utf16": 27,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "AGUILA CAZORLA MARIA",
+          "start_utf8": 50,
+          "end_utf8": 70,
+          "start_utf16": 50,
+          "end_utf16": 70,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "PERSON",
+          "value": "MARIA GADOR CANO ENCISO",
+          "start_utf8": 11,
+          "end_utf8": 34,
+          "start_utf16": 11,
+          "end_utf16": 34,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "DEL AGUILA CAZORLA MARIA",
+          "start_utf8": 46,
+          "end_utf8": 70,
+          "start_utf16": 46,
+          "end_utf16": 70,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "repair_capitals_stop_at_title_punctuation_and_line",
+      "text": "ANA LLANO DIRECTORA, ANA LLANA: 2024\nARIAS",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "PERSON",
+          "value": "ANA LLANO",
+          "start_utf8": 0,
+          "end_utf8": 9,
+          "start_utf16": 0,
+          "end_utf16": 9,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "ANA LLANA",
+          "start_utf8": 21,
+          "end_utf8": 30,
+          "start_utf16": 21,
+          "end_utf16": 30,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "PERSON",
+          "value": "ANA LLANO",
+          "start_utf8": 0,
+          "end_utf8": 9,
+          "start_utf16": 0,
+          "end_utf16": 9,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "ANA LLANA",
+          "start_utf8": 21,
+          "end_utf8": 30,
+          "start_utf16": 21,
+          "end_utf16": 30,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "repair_joins_person_name_particle",
+      "text": "Nombrado ANA DE LLANO ARIAS como vocal.",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "PERSON",
+          "value": "ANA",
+          "start_utf8": 9,
+          "end_utf8": 12,
+          "start_utf16": 9,
+          "end_utf16": 12,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "LLANO ARIAS",
+          "start_utf8": 16,
+          "end_utf8": 27,
+          "start_utf16": 16,
+          "end_utf16": 27,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "PERSON",
+          "value": "ANA DE LLANO ARIAS",
+          "start_utf8": 9,
+          "end_utf8": 27,
+          "start_utf16": 9,
+          "end_utf16": 27,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "repair_one_address_on_one_line",
+      "text": "Siège : Appartement 3, 409 rue Florent Evrard, BP 633, 62430 Sallaumines\nsuite",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "ADDRESS",
+          "value": "rue Florent Evrard",
+          "start_utf8": 28,
+          "end_utf8": 46,
+          "start_utf16": 27,
+          "end_utf16": 45,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "ADDRESS",
+          "value": "62430 Sallaumines",
+          "start_utf8": 56,
+          "end_utf8": 73,
+          "start_utf16": 55,
+          "end_utf16": 72,
+          "confidence": 0.9,
+          "detector": "fixture:strongRule",
+          "source": "strongRule",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "ADDRESS",
+          "value": "Appartement 3, 409 rue Florent Evrard, BP 633, 62430 Sallaumines",
+          "start_utf8": 9,
+          "end_utf8": 73,
+          "start_utf16": 8,
+          "end_utf16": 72,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "repair_places_in_prose_stay_apart",
+      "text": "Trains from Bristol to Bath, then Paris, Lyon.",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "ADDRESS",
+          "value": "Bristol",
+          "start_utf8": 12,
+          "end_utf8": 19,
+          "start_utf16": 12,
+          "end_utf16": 19,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "ADDRESS",
+          "value": "Bath",
+          "start_utf8": 23,
+          "end_utf8": 27,
+          "start_utf16": 23,
+          "end_utf16": 27,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "ADDRESS",
+          "value": "Paris",
+          "start_utf8": 34,
+          "end_utf8": 39,
+          "start_utf16": 34,
+          "end_utf16": 39,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "ADDRESS",
+          "value": "Lyon",
+          "start_utf8": 41,
+          "end_utf8": 45,
+          "start_utf16": 41,
+          "end_utf16": 45,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "ADDRESS",
+          "value": "Bristol",
+          "start_utf8": 12,
+          "end_utf8": 19,
+          "start_utf16": 12,
+          "end_utf16": 19,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "ADDRESS",
+          "value": "Bath",
+          "start_utf8": 23,
+          "end_utf8": 27,
+          "start_utf16": 23,
+          "end_utf16": 27,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "ADDRESS",
+          "value": "Paris",
+          "start_utf8": 34,
+          "end_utf8": 39,
+          "start_utf16": 34,
+          "end_utf16": 39,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "ADDRESS",
+          "value": "Lyon",
+          "start_utf8": 41,
+          "end_utf8": 45,
+          "start_utf16": 41,
+          "end_utf16": 45,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "repair_address_takes_rest_of_line",
+      "text": "I only moved into Apartment 12, Millrace Court, Old Kilmainham, Dublin 8, D08 XK72 in March.",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "ADDRESS",
+          "value": "D08 XK72",
+          "start_utf8": 74,
+          "end_utf8": 82,
+          "start_utf16": 74,
+          "end_utf16": 82,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "ADDRESS",
+          "value": "Apartment 12, Millrace Court, Old Kilmainham, Dublin 8, D08 XK72",
+          "start_utf8": 18,
+          "end_utf8": 82,
+          "start_utf16": 18,
+          "end_utf16": 82,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "repair_address_does_not_take_sentence",
+      "text": "Please post the keys to 4 Rectory Lane before Friday.",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "ADDRESS",
+          "value": "Rectory Lane",
+          "start_utf8": 26,
+          "end_utf8": 38,
+          "start_utf16": 26,
+          "end_utf16": 38,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "ADDRESS",
+          "value": "4 Rectory Lane",
+          "start_utf8": 24,
+          "end_utf8": 38,
+          "start_utf16": 24,
+          "end_utf16": 38,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "repair_company_tail_stops_at_department",
+      "text": "Signed for Wrenfield Glazing Finance on 3 May.",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "COMPANY",
+          "value": "Wrenfield",
+          "start_utf8": 11,
+          "end_utf8": 20,
+          "start_utf16": 11,
+          "end_utf16": 20,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "COMPANY",
+          "value": "Wrenfield Glazing",
+          "start_utf8": 11,
+          "end_utf8": 28,
+          "start_utf16": 11,
+          "end_utf16": 28,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "repair_company_keeps_particle_before_next_span",
+      "text": "Elle est infirmière au CHU de Montpellier depuis 2019.",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "COMPANY",
+          "value": "CHU",
+          "start_utf8": 24,
+          "end_utf8": 27,
+          "start_utf16": 23,
+          "end_utf16": 26,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "ADDRESS",
+          "value": "Montpellier",
+          "start_utf8": 31,
+          "end_utf8": 42,
+          "start_utf16": 30,
+          "end_utf16": 41,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "COMPANY",
+          "value": "CHU de",
+          "start_utf8": 24,
+          "end_utf8": 30,
+          "start_utf16": 23,
+          "end_utf16": 29,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "ADDRESS",
+          "value": "Montpellier",
+          "start_utf8": 31,
+          "end_utf8": 42,
+          "start_utf16": 30,
+          "end_utf16": 41,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "repair_company_keeps_connector_and_tail",
+      "text": "The College of Nursing opened today.",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "COMPANY",
+          "value": "College",
+          "start_utf8": 4,
+          "end_utf8": 11,
+          "start_utf16": 4,
+          "end_utf16": 11,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "COMPANY",
+          "value": "College of Nursing",
+          "start_utf8": 4,
+          "end_utf8": 22,
+          "start_utf16": 4,
+          "end_utf16": 22,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "repair_number_takes_trailing_digit_group",
+      "text": "Llame al 954 21 07 65. Gracias.",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "PHONE",
+          "value": "954 21 07",
+          "start_utf8": 9,
+          "end_utf8": 18,
+          "start_utf16": 9,
+          "end_utf16": 18,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "NUMBER",
+          "value": "954 21 07 65",
+          "start_utf8": 9,
+          "end_utf8": 21,
+          "start_utf16": 9,
+          "end_utf16": 21,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "repair_number_stops_before_date_and_amount",
+      "text": "Tel 06 12 34 56 78 12/03/2024 puis 06 12 34 56 79 12 500,00 €",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "PHONE",
+          "value": "06 12 34 56 78",
+          "start_utf8": 4,
+          "end_utf8": 18,
+          "start_utf16": 4,
+          "end_utf16": 18,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "PHONE",
+          "value": "06 12 34 56 79",
+          "start_utf8": 35,
+          "end_utf8": 49,
+          "start_utf16": 35,
+          "end_utf16": 49,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "PHONE",
+          "value": "06 12 34 56 78",
+          "start_utf8": 4,
+          "end_utf8": 18,
+          "start_utf16": 4,
+          "end_utf16": 18,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "PHONE",
+          "value": "06 12 34 56 79",
+          "start_utf8": 35,
+          "end_utf8": 49,
+          "start_utf16": 35,
+          "end_utf16": 49,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "repair_address_block_town_line",
+      "text": "PO Box 4402\nLeicester\nLE87 9AB",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "ADDRESS",
+          "value": "PO Box 4402",
+          "start_utf8": 0,
+          "end_utf8": 11,
+          "start_utf16": 0,
+          "end_utf16": 11,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "ADDRESS",
+          "value": "LE87 9AB",
+          "start_utf8": 22,
+          "end_utf8": 30,
+          "start_utf16": 22,
+          "end_utf16": 30,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "ADDRESS",
+          "value": "PO Box 4402",
+          "start_utf8": 0,
+          "end_utf8": 11,
+          "start_utf16": 0,
+          "end_utf16": 11,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "ADDRESS",
+          "value": "Leicester",
+          "start_utf8": 12,
+          "end_utf8": 21,
+          "start_utf16": 12,
+          "end_utf16": 21,
+          "confidence": 0.7,
+          "detector": "repair:address_line",
+          "source": "rule",
+          "enabled": true
+        },
+        {
+          "type": "ADDRESS",
+          "value": "LE87 9AB",
+          "start_utf8": 22,
+          "end_utf8": 30,
+          "start_utf16": 22,
+          "end_utf16": 30,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "repair_address_block_two_lines",
+      "text": "27 Brambleside Court, Nether Parkfield\nRoad\nSheffield\nS11 8QT",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "ADDRESS",
+          "value": "27 Brambleside Court, Nether Parkfield",
+          "start_utf8": 0,
+          "end_utf8": 38,
+          "start_utf16": 0,
+          "end_utf16": 38,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "ADDRESS",
+          "value": "S11 8QT",
+          "start_utf8": 54,
+          "end_utf8": 61,
+          "start_utf16": 54,
+          "end_utf16": 61,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "ADDRESS",
+          "value": "27 Brambleside Court, Nether Parkfield",
+          "start_utf8": 0,
+          "end_utf8": 38,
+          "start_utf16": 0,
+          "end_utf16": 38,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "ADDRESS",
+          "value": "Road",
+          "start_utf8": 39,
+          "end_utf8": 43,
+          "start_utf16": 39,
+          "end_utf16": 43,
+          "confidence": 0.7,
+          "detector": "repair:address_line",
+          "source": "rule",
+          "enabled": true
+        },
+        {
+          "type": "ADDRESS",
+          "value": "Sheffield",
+          "start_utf8": 44,
+          "end_utf8": 53,
+          "start_utf16": 44,
+          "end_utf16": 53,
+          "confidence": 0.7,
+          "detector": "repair:address_line",
+          "source": "rule",
+          "enabled": true
+        },
+        {
+          "type": "ADDRESS",
+          "value": "S11 8QT",
+          "start_utf8": 54,
+          "end_utf8": 61,
+          "start_utf16": 54,
+          "end_utf16": 61,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "repair_address_block_respects_other_detection",
+      "text": "14 Sackville Row\n28 February 2024\nM1 6EX",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "ADDRESS",
+          "value": "14 Sackville Row",
+          "start_utf8": 0,
+          "end_utf8": 16,
+          "start_utf16": 0,
+          "end_utf16": 16,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "DATE",
+          "value": "28 February 2024",
+          "start_utf8": 17,
+          "end_utf8": 33,
+          "start_utf16": 17,
+          "end_utf16": 33,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "ADDRESS",
+          "value": "M1 6EX",
+          "start_utf8": 34,
+          "end_utf8": 40,
+          "start_utf16": 34,
+          "end_utf16": 40,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "ADDRESS",
+          "value": "14 Sackville Row",
+          "start_utf8": 0,
+          "end_utf8": 16,
+          "start_utf16": 0,
+          "end_utf16": 16,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "DATE",
+          "value": "28 February 2024",
+          "start_utf8": 17,
+          "end_utf8": 33,
+          "start_utf16": 17,
+          "end_utf16": 33,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": false
+        },
+        {
+          "type": "ADDRESS",
+          "value": "M1 6EX",
+          "start_utf8": 34,
+          "end_utf8": 40,
+          "start_utf16": 34,
+          "end_utf16": 40,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "repair_address_drops_trailing_particle",
+      "text": "Since her discharge from St Luke's on 9 September she has been confused.",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "ADDRESS",
+          "value": "St Luke's",
+          "start_utf8": 25,
+          "end_utf8": 34,
+          "start_utf16": 25,
+          "end_utf16": 34,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "DATE",
+          "value": "9 September",
+          "start_utf8": 38,
+          "end_utf8": 49,
+          "start_utf16": 38,
+          "end_utf16": 49,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "ADDRESS",
+          "value": "St Luke's",
+          "start_utf8": 25,
+          "end_utf8": 34,
+          "start_utf16": 25,
+          "end_utf16": 34,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "DATE",
+          "value": "9 September",
+          "start_utf8": 38,
+          "end_utf8": 49,
+          "start_utf16": 38,
+          "end_utf16": 49,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": false
+        }
+      ]
+    },
+    {
+      "name": "repair_address_keeps_particle_between_places",
+      "text": "She lives in Newcastle upon Tyne now.",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "ADDRESS",
+          "value": "Newcastle",
+          "start_utf8": 13,
+          "end_utf8": 22,
+          "start_utf16": 13,
+          "end_utf16": 22,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "ADDRESS",
+          "value": "Newcastle upon Tyne",
+          "start_utf8": 13,
+          "end_utf8": 32,
+          "start_utf16": 13,
+          "end_utf16": 32,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "repair_multiline_company_drops_title_line",
+      "text": "Kind regards,\nPriya Raman\nHuman Resources",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "COMPANY",
+          "value": "Priya Raman\nHuman Resources",
+          "start_utf8": 14,
+          "end_utf8": 41,
+          "start_utf16": 14,
+          "end_utf16": 41,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "COMPANY",
+          "value": "Priya Raman",
+          "start_utf8": 14,
+          "end_utf8": 25,
+          "start_utf16": 14,
+          "end_utf16": 25,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "repair_multiline_person_keeps_wrapped_name",
+      "text": "Patient: Jean-Baptiste\nDelacroix-Moreau",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "PERSON",
+          "value": "Jean-Baptiste\nDelacroix-Moreau",
+          "start_utf8": 9,
+          "end_utf8": 39,
+          "start_utf16": 9,
+          "end_utf16": 39,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "PERSON",
+          "value": "Jean-Baptiste\nDelacroix-Moreau",
+          "start_utf8": 9,
+          "end_utf8": 39,
+          "start_utf16": 9,
+          "end_utf16": 39,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "cjk_propagation_and_utf_offsets",
+      "text": "张三见过张三 😀",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "PERSON",
+          "value": "张三",
+          "start_utf8": 0,
+          "end_utf8": 6,
+          "start_utf16": 0,
+          "end_utf16": 2,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "PERSON",
+          "value": "张三",
+          "start_utf8": 0,
+          "end_utf8": 6,
+          "start_utf16": 0,
+          "end_utf16": 2,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "张三",
+          "start_utf8": 12,
+          "end_utf8": 18,
+          "start_utf16": 4,
+          "end_utf16": 6,
+          "confidence": 0.95,
+          "detector": "propagated",
+          "source": "propagated",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "disabled_detection_stays_disabled",
+      "text": "Bob and Alice",
+      "never_hide": [],
+      "candidates": [
+        {
+          "type": "PERSON",
+          "value": "Bob",
+          "start_utf8": 0,
+          "end_utf8": 3,
+          "start_utf16": 0,
+          "end_utf16": 3,
+          "confidence": 0.9,
+          "detector": "fixture:manual",
+          "source": "manual",
+          "enabled": false
+        },
+        {
+          "type": "PERSON",
+          "value": "Alice",
+          "start_utf8": 9,
+          "end_utf8": 14,
+          "start_utf16": 8,
+          "end_utf16": 13,
+          "confidence": 0.9,
+          "detector": "fixture:manual",
+          "source": "manual",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "PERSON",
+          "value": "Bob",
+          "start_utf8": 0,
+          "end_utf8": 3,
+          "start_utf16": 0,
+          "end_utf16": 3,
+          "confidence": 0.9,
+          "detector": "fixture:manual",
+          "source": "manual",
+          "enabled": false
+        },
+        {
+          "type": "PERSON",
+          "value": "Alice",
+          "start_utf8": 9,
+          "end_utf8": 14,
+          "start_utf16": 8,
+          "end_utf16": 13,
+          "confidence": 0.9,
+          "detector": "fixture:manual",
+          "source": "manual",
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}

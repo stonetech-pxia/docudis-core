@@ -1,0 +1,131 @@
+# Docudis Rust core — non-inference migration
+
+This workspace is the first vertical slice of the gradual Dart-to-Rust
+migration. The Flutter app still keeps `packages/docudis_engine` as its
+production reference and fallback; the Dart FFI package supports differential
+execution without unconditionally changing the production path.
+
+All new Rust crates are licensed under Apache-2.0. The placeholder and restore
+behavior was migrated from the Dart implementation that includes
+DocCloak.Core-derived code. The required copyright and attribution are retained
+in each crate's `NOTICE` and in
+`NOTICE-DocCloak.Core`; the full Apache-2.0 text remains at
+`LICENSE-DocCloak.Core`.
+
+## Workspace
+
+- `docudis-core`: platform-independent rules, validators, lists, dictionaries,
+  overlap resolution, never-hide, repair, propagation, NER window/BIO
+  algorithms, offset conversion, anonymization, and restoration. It contains
+  no Flutter, PDF, OCR, ONNX Runtime, or other inference-runtime dependency.
+- `docudis-capi`: small versioned C ABI built as both `cdylib` and `staticlib`.
+- `docudis-cli`: text/stdin interface over the same Rust core.
+- `../conformance`: one language-neutral fixture suite consumed by Rust and
+  Dart tests.
+
+The `Detector` trait in `docudis-core` is the future adapter seam. Rule and
+dictionary detection can remain pure; ONNX-backed detection belongs in a
+separate `docudis-ort` crate that implements or drives this boundary. OCR,
+file selection, sharing, and platform UI remain outside the core. PDF/DOCX
+processing will live in `docudis-documents` and consume core replacements.
+
+## Build and test
+
+Install a current stable Rust toolchain, then run from the repository root:
+
+```sh
+cargo fmt --all --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace
+
+cd bindings/dart
+dart format --output=none --set-exit-if-changed lib test
+dart analyze
+dart test
+```
+
+The shared fixtures cover all rule packs and entity categories plus ASCII,
+CJK, emoji, combining characters, NBSP, validators/hard negatives, overlap
+priority, never-hide, repair, propagation, external NER spans, previous maps,
+disabled detections, person variants, and exact/tolerant restoration.
+
+## Offset contract
+
+Rust and every public C function use half-open UTF-8 byte offsets. Dart strings
+and the existing detector pipeline use half-open UTF-16 code-unit offsets. The
+Dart FFI adapter must convert offsets at the boundary and reject an offset that
+splits a surrogate pair or does not land on a UTF-8 scalar boundary.
+
+`docudis-core` exports checked `utf8_to_utf16_offset` and
+`utf16_to_utf8_offset` helpers for native-side verification. The Dart
+conformance test demonstrates the binding-side conversion using `dart:convert`.
+Do not reinterpret Dart offsets as Rust offsets, even when ASCII tests happen
+to pass.
+
+## CLI
+
+The CLI runs non-NER rules by default. It accepts text or stdin, region packs,
+user dictionary/never-hide terms, bundled lists, and external NER JSON:
+
+```sh
+cargo run -p docudis-cli -- \
+  --regions fr --dictionary 'Élodie' --text 'Élodie: alice@example.com'
+
+printf 'Call Alice' | cargo run -p docudis-cli -- \
+  --json --detect-only --regions gb
+```
+
+`--ner-detections FILE` merges host-produced UTF-8 spans; without it the CLI
+does not claim to run NER. `--restore --map FILE` restores placeholders.
+
+## C ABI
+
+The authoritative declaration is `docudis-capi/include/docudis.h`.
+
+- All exported names use the `docudis_v1_` prefix, and
+  `docudis_v1_abi_version()` returns `1`.
+- `docudis_v1_anonymize_json` accepts caller-provided detections unchanged.
+  `docudis_v1_detect_json`, `docudis_v1_process_json`, and
+  `docudis_v1_restore_json` add detection, combined processing, and restoration
+  while preserving ABI v1. Complex
+  data is versioned with `schema_version: 1`; detection and replacement offsets
+  are UTF-8 bytes.
+- Input memory remains owned by the caller. A successful output is allocated by
+  Rust and **must** be passed exactly once to `docudis_v1_buffer_free` from the
+  same loaded library. The free function zeroes the structure. The output is
+  length-delimited and is not NUL-terminated.
+- Status codes are stable in the v1 header. Failure detail is available from
+  the thread-local `docudis_v1_last_error_message()` and must not be freed.
+- Every operation that can execute Rust logic catches unwinding at the ABI
+  boundary. No Rust panic is permitted to cross into C.
+- The header exposes only the version, status enum, and owned byte buffer; it
+  does not expose Rust layouts or core structs.
+
+Example request:
+
+```json
+{
+  "schema_version": 1,
+  "text": "Hi 张三",
+  "detections": [
+    {
+      "type": "PERSON",
+      "value": "张三",
+      "start": 3,
+      "end": 9,
+      "confidence": 1.0,
+      "detector": "host",
+      "source": "manual",
+      "enabled": true
+    }
+  ]
+}
+```
+
+## Deliberate boundary
+
+NER inference remains in Dart/Flutter. Rust accepts those detections and owns
+only inference-independent algorithms such as window construction,
+SentencePiece realignment, softmax selection, and BIO decoding. There is no
+`docudis-ort` crate and no ONNX Runtime dependency. OCR, PDF/DOCX processing,
+and platform UI remain unchanged.

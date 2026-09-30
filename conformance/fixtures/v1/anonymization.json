@@ -1,0 +1,195 @@
+{
+  "schema_version": 1,
+  "offset_contract": {
+    "rust_and_c_api": "UTF-8 byte offsets, half-open",
+    "dart_reference": "UTF-16 code-unit offsets, half-open"
+  },
+  "cases": [
+    {
+      "name": "ascii_repeated_entities",
+      "text": "Bob emailed Alice, then Alice called Bob.",
+      "detections": [
+        {"type": "PERSON", "value": "Alice", "start_utf8": 24, "end_utf8": 29, "start_utf16": 24, "end_utf16": 29, "confidence": 1.0, "detector": "fixture", "source": "manual", "enabled": true},
+        {"type": "PERSON", "value": "Bob", "start_utf8": 0, "end_utf8": 3, "start_utf16": 0, "end_utf16": 3, "confidence": 1.0, "detector": "fixture", "source": "manual", "enabled": true},
+        {"type": "PERSON", "value": "Alice", "start_utf8": 12, "end_utf8": 17, "start_utf16": 12, "end_utf16": 17, "confidence": 1.0, "detector": "fixture", "source": "manual", "enabled": true},
+        {"type": "PERSON", "value": "Bob", "start_utf8": 37, "end_utf8": 40, "start_utf16": 37, "end_utf16": 40, "confidence": 1.0, "detector": "fixture", "source": "manual", "enabled": true}
+      ],
+      "expected": {
+        "text": "[PERSON_1] emailed [PERSON_2], then [PERSON_2] called [PERSON_1].",
+        "mappings": [
+          {"original": "Bob", "placeholder": "[PERSON_1]", "type": "PERSON"},
+          {"original": "Alice", "placeholder": "[PERSON_2]", "type": "PERSON"}
+        ],
+        "replacements": [
+          {"start_utf8": 0, "end_utf8": 3, "start_utf16": 0, "end_utf16": 3, "placeholder": "[PERSON_1]"},
+          {"start_utf8": 12, "end_utf8": 17, "start_utf16": 12, "end_utf16": 17, "placeholder": "[PERSON_2]"},
+          {"start_utf8": 24, "end_utf8": 29, "start_utf16": 24, "end_utf16": 29, "placeholder": "[PERSON_2]"},
+          {"start_utf8": 37, "end_utf8": 40, "start_utf16": 37, "end_utf16": 40, "placeholder": "[PERSON_1]"}
+        ],
+        "restore_cases": [
+          {"input": "[PERSON_2] called [PERSON_1].", "output": "Alice called Bob."},
+          {"input": "PERSON_1 met [person 2]", "output": "Bob met Alice"}
+        ]
+      }
+    },
+    {
+      "name": "cjk_offsets",
+      "text": "联系张三，电话13812345678。",
+      "detections": [
+        {"type": "PERSON", "value": "张三", "start_utf8": 6, "end_utf8": 12, "start_utf16": 2, "end_utf16": 4, "confidence": 1.0, "detector": "fixture", "source": "manual", "enabled": true},
+        {"type": "PHONE", "value": "13812345678", "start_utf8": 21, "end_utf8": 32, "start_utf16": 7, "end_utf16": 18, "confidence": 1.0, "detector": "fixture", "source": "manual", "enabled": true}
+      ],
+      "expected": {
+        "text": "联系[PERSON_1]，电话[PHONE_1]。",
+        "mappings": [
+          {"original": "张三", "placeholder": "[PERSON_1]", "type": "PERSON"},
+          {"original": "13812345678", "placeholder": "[PHONE_1]", "type": "PHONE"}
+        ],
+        "replacements": [
+          {"start_utf8": 6, "end_utf8": 12, "start_utf16": 2, "end_utf16": 4, "placeholder": "[PERSON_1]"},
+          {"start_utf8": 21, "end_utf8": 32, "start_utf16": 7, "end_utf16": 18, "placeholder": "[PHONE_1]"}
+        ],
+        "restore_cases": [
+          {"input": "请联系[PERSON_1]，电话[PHONE-1.]。", "output": "请联系张三，电话13812345678。"}
+        ]
+      }
+    },
+    {
+      "name": "emoji_surrogate_pair_offsets",
+      "text": "😀Alice met Bob 😀",
+      "detections": [
+        {"type": "PERSON", "value": "Alice", "start_utf8": 4, "end_utf8": 9, "start_utf16": 2, "end_utf16": 7, "confidence": 1.0, "detector": "fixture", "source": "manual", "enabled": true},
+        {"type": "PERSON", "value": "Bob", "start_utf8": 14, "end_utf8": 17, "start_utf16": 12, "end_utf16": 15, "confidence": 1.0, "detector": "fixture", "source": "manual", "enabled": true},
+        {"type": "CUSTOM", "value": "😀", "start_utf8": 18, "end_utf8": 22, "start_utf16": 16, "end_utf16": 18, "confidence": 1.0, "detector": "fixture", "source": "manual", "enabled": true}
+      ],
+      "expected": {
+        "text": "😀[PERSON_1] met [PERSON_2] [CUSTOM_1]",
+        "mappings": [
+          {"original": "Alice", "placeholder": "[PERSON_1]", "type": "PERSON"},
+          {"original": "Bob", "placeholder": "[PERSON_2]", "type": "PERSON"},
+          {"original": "😀", "placeholder": "[CUSTOM_1]", "type": "CUSTOM"}
+        ],
+        "replacements": [
+          {"start_utf8": 4, "end_utf8": 9, "start_utf16": 2, "end_utf16": 7, "placeholder": "[PERSON_1]"},
+          {"start_utf8": 14, "end_utf8": 17, "start_utf16": 12, "end_utf16": 15, "placeholder": "[PERSON_2]"},
+          {"start_utf8": 18, "end_utf8": 22, "start_utf16": 16, "end_utf16": 18, "placeholder": "[CUSTOM_1]"}
+        ],
+        "restore_cases": [
+          {"input": "[CUSTOM_1] [PERSON_1]", "output": "😀 Alice"}
+        ]
+      }
+    },
+    {
+      "name": "combining_character_offsets",
+      "text": "Café belongs to Zoë.",
+      "detections": [
+        {"type": "CUSTOM", "value": "é", "start_utf8": 3, "end_utf8": 6, "start_utf16": 3, "end_utf16": 5, "confidence": 1.0, "detector": "fixture", "source": "manual", "enabled": true},
+        {"type": "PERSON", "value": "Zoë", "start_utf8": 18, "end_utf8": 22, "start_utf16": 17, "end_utf16": 20, "confidence": 1.0, "detector": "fixture", "source": "manual", "enabled": true}
+      ],
+      "expected": {
+        "text": "Caf[CUSTOM_1] belongs to [PERSON_1].",
+        "mappings": [
+          {"original": "é", "placeholder": "[CUSTOM_1]", "type": "CUSTOM"},
+          {"original": "Zoë", "placeholder": "[PERSON_1]", "type": "PERSON"}
+        ],
+        "replacements": [
+          {"start_utf8": 3, "end_utf8": 6, "start_utf16": 3, "end_utf16": 5, "placeholder": "[CUSTOM_1]"},
+          {"start_utf8": 18, "end_utf8": 22, "start_utf16": 17, "end_utf16": 20, "placeholder": "[PERSON_1]"}
+        ],
+        "restore_cases": [
+          {"input": "Caf[CUSTOM_1]", "output": "Café"}
+        ]
+      }
+    },
+    {
+      "name": "overlap_earlier_span_wins",
+      "text": "Alice Smith called.",
+      "detections": [
+        {"type": "PERSON", "value": "Alice Smith", "start_utf8": 0, "end_utf8": 11, "start_utf16": 0, "end_utf16": 11, "confidence": 1.0, "detector": "fixture", "source": "manual", "enabled": true},
+        {"type": "CUSTOM", "value": "Smith", "start_utf8": 6, "end_utf8": 11, "start_utf16": 6, "end_utf16": 11, "confidence": 1.0, "detector": "fixture", "source": "manual", "enabled": true}
+      ],
+      "expected": {
+        "text": "[PERSON_1] called.",
+        "mappings": [
+          {"original": "Alice Smith", "placeholder": "[PERSON_1]", "type": "PERSON"}
+        ],
+        "replacements": [
+          {"start_utf8": 0, "end_utf8": 11, "start_utf16": 0, "end_utf16": 11, "placeholder": "[PERSON_1]"}
+        ],
+        "restore_cases": [
+          {"input": "[PERSON_1] called.", "output": "Alice Smith called."}
+        ]
+      }
+    },
+    {
+      "name": "disabled_detection",
+      "text": "Bob and Alice",
+      "detections": [
+        {"type": "PERSON", "value": "Bob", "start_utf8": 0, "end_utf8": 3, "start_utf16": 0, "end_utf16": 3, "confidence": 1.0, "detector": "fixture", "source": "manual", "enabled": false},
+        {"type": "PERSON", "value": "Alice", "start_utf8": 8, "end_utf8": 13, "start_utf16": 8, "end_utf16": 13, "confidence": 1.0, "detector": "fixture", "source": "manual", "enabled": true}
+      ],
+      "expected": {
+        "text": "Bob and [PERSON_1]",
+        "mappings": [
+          {"original": "Alice", "placeholder": "[PERSON_1]", "type": "PERSON"}
+        ],
+        "replacements": [
+          {"start_utf8": 8, "end_utf8": 13, "start_utf16": 8, "end_utf16": 13, "placeholder": "[PERSON_1]"}
+        ],
+        "restore_cases": [
+          {"input": "Bob and [PERSON_1]", "output": "Bob and Alice"}
+        ]
+      }
+    },
+    {
+      "name": "cjk_person_variant_reuse",
+      "text": "张三先生来了，张三签了字。",
+      "detections": [
+        {"type": "PERSON", "value": "张三先生", "start_utf8": 0, "end_utf8": 12, "start_utf16": 0, "end_utf16": 4, "confidence": 1.0, "detector": "fixture", "source": "manual", "enabled": true},
+        {"type": "PERSON", "value": "张三", "start_utf8": 21, "end_utf8": 27, "start_utf16": 7, "end_utf16": 9, "confidence": 1.0, "detector": "fixture", "source": "manual", "enabled": true}
+      ],
+      "expected": {
+        "text": "[PERSON_1]来了，[PERSON_1]签了字。",
+        "mappings": [
+          {"original": "张三先生", "placeholder": "[PERSON_1]", "type": "PERSON"},
+          {"original": "张三", "placeholder": "[PERSON_1]", "type": "PERSON"}
+        ],
+        "replacements": [
+          {"start_utf8": 0, "end_utf8": 12, "start_utf16": 0, "end_utf16": 4, "placeholder": "[PERSON_1]"},
+          {"start_utf8": 21, "end_utf8": 27, "start_utf16": 7, "end_utf16": 9, "placeholder": "[PERSON_1]"}
+        ],
+        "restore_cases": [
+          {"input": "[PERSON_1]签字", "output": "张三先生签字"}
+        ]
+      }
+    },
+    {
+      "name": "previous_map_preserves_numbers_and_restore",
+      "text": "Bob met Alice and Carol.",
+      "previous_map": [
+        {"original": "Alice", "placeholder": "[CUSTOM_1]", "type": "CUSTOM"},
+        {"original": "Carol", "placeholder": "[PERSON_1]", "type": "PERSON"}
+      ],
+      "detections": [
+        {"type": "CUSTOM", "value": "Bob", "start_utf8": 0, "end_utf8": 3, "start_utf16": 0, "end_utf16": 3, "confidence": 1.0, "detector": "fixture", "source": "manual", "enabled": true},
+        {"type": "CUSTOM", "value": "Alice", "start_utf8": 8, "end_utf8": 13, "start_utf16": 8, "end_utf16": 13, "confidence": 1.0, "detector": "fixture", "source": "manual", "enabled": true},
+        {"type": "PERSON", "value": "Carol", "start_utf8": 18, "end_utf8": 23, "start_utf16": 18, "end_utf16": 23, "confidence": 1.0, "detector": "fixture", "source": "manual", "enabled": false}
+      ],
+      "expected": {
+        "text": "[CUSTOM_2] met [CUSTOM_1] and Carol.",
+        "mappings": [
+          {"original": "Alice", "placeholder": "[CUSTOM_1]", "type": "CUSTOM"},
+          {"original": "Carol", "placeholder": "[PERSON_1]", "type": "PERSON"},
+          {"original": "Bob", "placeholder": "[CUSTOM_2]", "type": "CUSTOM"}
+        ],
+        "replacements": [
+          {"start_utf8": 0, "end_utf8": 3, "start_utf16": 0, "end_utf16": 3, "placeholder": "[CUSTOM_2]"},
+          {"start_utf8": 8, "end_utf8": 13, "start_utf16": 8, "end_utf16": 13, "placeholder": "[CUSTOM_1]"}
+        ],
+        "restore_cases": [
+          {"input": "[CUSTOM_1] and [PERSON_1] agree with [CUSTOM_2].", "output": "Alice and Carol agree with Bob."}
+        ]
+      }
+    }
+  ]
+}

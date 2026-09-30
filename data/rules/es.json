@@ -1,0 +1,448 @@
+{
+  "schemaVersion": 2,
+  "region": "es",
+  "scope": {
+    "jurisdictions": [
+      "ES"
+    ],
+    "languages": [
+      "es"
+    ]
+  },
+  "rules": [
+    {
+      "id": "regex:es:dni",
+      "entityType": "SSN",
+      "pattern": "\\b\\d{8}[\\s-]?[A-Z]\\b",
+      "flags": "gi",
+      "confidence": 0.9,
+      "domains": [
+        "identity"
+      ],
+      "classification": {
+        "category": "identity",
+        "subtype": "national_id",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Spanish DNI (8 digits + letter)",
+      "examples": [
+        "12345678Z",
+        "12345678-Z"
+      ],
+      "validate": "dni"
+    },
+    {
+      "id": "regex:es:nie",
+      "entityType": "SSN",
+      "pattern": "\\b[XYZ][\\s-]?\\d{7}[\\s-]?[A-Z]\\b",
+      "flags": "gi",
+      "confidence": 0.9,
+      "domains": [
+        "identity"
+      ],
+      "classification": {
+        "category": "identity",
+        "subtype": "national_id",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Spanish NIE for foreigners (X/Y/Z + 7 digits + letter)",
+      "examples": [
+        "X1234567L",
+        "Y-1234567-A"
+      ]
+    },
+    {
+      "id": "regex:es:cups",
+      "entityType": "NUMBER",
+      "pattern": "\\bES[ \\u00A0]?\\d{4}(?:[ \\u00A0]?\\d{4}){3}[ \\u00A0]?[A-Z]{2}(?:[ \\u00A0]?\\d[FPCRXYZ])?\\b",
+      "flags": "g",
+      "confidence": 0.9,
+      "domains": [
+        "contact",
+        "financial"
+      ],
+      "classification": {
+        "category": "genericIdentifier",
+        "subtype": "utility_supply_point",
+        "applicability": "specialized",
+        "verticals": [
+          "finance",
+          "utilities"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "Spanish CUPS, the supply-point code on every electricity and gas bill (Docudis addition 2026-09-23): ES + 16 digits + two control letters, optionally a border point. It names one home's meter, so it points at the address. Reported as NUMBER: it is not a personal ID.",
+      "examples": [
+        "ES0021000012345678LB",
+        "ES 0021 0000 1234 5678 LB"
+      ],
+      "validate": "cups"
+    },
+    {
+      "id": "regex:es:cif",
+      "entityType": "SSN",
+      "pattern": "\\b[A-H]\\d{7}[0-9A-J]\\b",
+      "flags": "gi",
+      "confidence": 0.8,
+      "domains": [
+        "financial",
+        "legal"
+      ],
+      "classification": {
+        "category": "businessRecord",
+        "subtype": "business_tax_id",
+        "applicability": "specialized",
+        "verticals": [
+          "finance",
+          "legal"
+        ],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Spanish CIF company tax ID",
+      "examples": [
+        "A12345678",
+        "B87654321"
+      ]
+    },
+    {
+      "id": "regex:es:cuenta_bancaria",
+      "entityType": "SSN",
+      "pattern": "\\b(?:ES)?\\d{2}\\s?\\d{4}\\s?\\d{4}\\s?\\d{4}\\s?\\d{4}\\s?\\d{4}\\b",
+      "flags": "gi",
+      "confidence": 0.8,
+      "domains": [
+        "financial"
+      ],
+      "classification": {
+        "category": "financialAccount",
+        "subtype": "bank_account",
+        "applicability": "baseline",
+        "verticals": [
+          "finance"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Spanish bank account number (CCC, 20 digits)",
+      "examples": [
+        "ES12 1234 5678 9012 3456 7890"
+      ]
+    },
+    {
+      "id": "regex:es:phone",
+      "entityType": "PHONE",
+      "pattern": "\\b(?:\\+?34[\\s-]?)?(?:[6789]\\d{2}[\\s-]?\\d{3}[\\s-]?\\d{3}|[6789]\\d{2}(?:[\\s-]?\\d{2}){3}|[89]\\d[\\s-]?\\d{3}(?:[\\s-]?\\d{2}){2})\\b",
+      "flags": "g",
+      "confidence": 0.8,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "contact",
+        "subtype": "phone",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Spanish phone number (9 digits, optionally with +34) (Docudis change 2026-09-19: landline groupings 3-2-2-2 and 2-3-2-2 as well as 3-3-3; \"954 21 07 63\" fell to the long-number rule, which stops at a line break)",
+      "examples": [
+        "+34 612 345 678",
+        "912 345 678",
+        "954 21 07 63",
+        "91 234 56 78"
+      ]
+    },
+    {
+      "id": "regex:es:postal",
+      "entityType": "ADDRESS",
+      "pattern": "(?<!\\d{3}[ \\u00A0]\\d{3}[ \\u00A0])\\b\\d{5}[ \\u00A0]\\(?\\p{Lu}[\\p{L}'’-]*(?:[ \\u00A0-](?:(?:sur|sous|de|du|des|la|le|les|en|lès|aux|del|los|las)[ \\u00A0-])*\\p{Lu}[\\p{L}'’-]*)*\\)?(?![\\p{L}])",
+      "flags": "gu",
+      "confidence": 0.8,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "location",
+        "subtype": "postal_code",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Spanish postal code (5 digits) followed by city name (Docudis change 2026-09-18: confidence 0.75 lost to the model, which tags only the city and leaves the postcode visible; exactly one space, a capitalised city, \"(ALBACETE)\" allowed)",
+      "examples": [
+        "28001 Madrid",
+        "08001 Barcelona",
+        "02003 (ALBACETE)"
+      ]
+    },
+    {
+      "id": "regex:es:currency_words",
+      "entityType": "CURRENCY",
+      "pattern": "(?:(?:en\\s+)?(?:letras?|palabras?)\\s*:\\s*|(?:la\\s+)?(?:cantidad|suma)\\s+de\\s+)[\\p{L} \\t\\u00A0-]+(?:euros?|céntimos?|pesos?|centavos?)\\b",
+      "flags": "giu",
+      "confidence": 0.9,
+      "domains": [
+        "financial"
+      ],
+      "classification": {
+        "category": "financialValue",
+        "subtype": "amount",
+        "applicability": "specialized",
+        "verticals": [
+          "finance"
+        ],
+        "protectionLevel": "optional",
+        "defaultAction": "detectOnly",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Spanish amount written in words (e.g., \"en letras: ocho mil quinientos euros\") (Docudis change: no line break inside the name)",
+      "examples": [
+        "en letras: ocho mil quinientos euros"
+      ]
+    },
+    {
+      "id": "regex:es:street",
+      "entityType": "ADDRESS",
+      "pattern": "(?<![\\p{L}])(?:(?:Calle|Avenida|Avda\\.?|Av\\.?|Plaza|Pza\\.?|Paseo|Ronda|Carretera|Ctra\\.?|Camino|Travesía|Glorieta|Carrer|Rambla|Passeig)[ \\u00A0]|C/[ \\u00A0]?)(?:[\\p{L}'’.-]+[ \\u00A0]){0,5}?[\\p{L}'’.-]+,?[ \\u00A0]?(?:n\\.?º?[ \\u00A0]?)?\\d{1,4}(?:[ \\u00A0]\\d{1,2}[ºª](?:[ \\u00A0][A-Z]\\b)?)?|(?<![\\p{L}])Gran[ \\u00A0]Vía(?:[ \\u00A0]de[ \\u00A0][\\p{L}'’.-]+(?:[ \\u00A0][\\p{L}'’.-]+){0,3}?)?,?[ \\u00A0]?\\d{1,4}",
+      "flags": "giu",
+      "confidence": 0.85,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "location",
+        "subtype": "street_address",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Spanish street address (Calle/Avenida/Plaza + name + optional number) (Docudis change 2026-09-18: a house number is required and \"C.\" alone is no longer a street type (\"C. Domicilio\" was an address); adds C/, Carrer, Rambla, Passeig, Gran Vía and floor/door \"1 4º D\")",
+      "examples": [
+        "Calle Mayor 5",
+        "Avenida de la Constitución 18",
+        "C/ PONTEVEDRA, 1 4º D",
+        "Carrer de Mallorca 275",
+        "Gran Vía 45"
+      ]
+    },
+    {
+      "id": "regex:es:company",
+      "entityType": "COMPANY",
+      "pattern": "(?<![\\p{L}\\d])(?:\\p{Lu}[\\p{L}\\d.'’&-]*|\\d+[\\p{L}\\d]*)(?:[ \\u00A0](?:(?:de|del|la|las|los|y|e|i|en|&)[ \\u00A0])*(?:\\p{Lu}[\\p{L}\\d.'’&-]*|\\d+[\\p{L}\\d]*)){0,7},?[ \\u00A0](?:SOCIEDAD LIMITADA(?: UNIPERSONAL| LABORAL| PROFESIONAL)?|SOCIEDAD AN[OÓ]NIMA(?: UNIPERSONAL)?|SOCIEDAD COOPERATIVA|Sociedad Limitada|Sociedad Anónima|S\\.L\\.U\\.?|S\\.L\\.L\\.?|S\\.L\\.P\\.?|S\\.L\\.?|S\\.A\\.U\\.?|S\\.A\\.?|S\\.C\\.?|S\\.COOP\\.?|SLU|SLL|SLP|SL|SAU|SA)(?![\\p{L}\\d])(?![ \\u00A0]?:)",
+      "flags": "gu",
+      "confidence": 0.9,
+      "domains": [
+        "legal",
+        "financial"
+      ],
+      "classification": {
+        "category": "organization",
+        "subtype": "company",
+        "applicability": "baseline",
+        "verticals": [
+          "legal",
+          "finance"
+        ],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Spanish company name with legal form (S.L., S.A., S.L.U., S.A.U., S.C.) (Docudis change 2026-09-18: the name must be a run of capitalised words, so the sentence before the company is no longer swallowed; a form label followed by a colon is not a company; legal forms written in full or without dots (BORME))",
+      "examples": [
+        "Telefónica S.A.",
+        "Inditex S.L.",
+        "GASOLEOS HERMANOS RODRIGUEZ SOCIEDAD LIMITADA",
+        "ARECAR SL"
+      ]
+    },
+    {
+      "id": "regex:es:labeled_company",
+      "entityType": "COMPANY",
+      "pattern": "(?<=(?:Denominación social|Razón social|Nombre comercial|Empresa)[ \\u00A0]?:[ \\u00A0]?)\\p{Lu}[^\\n,;:]{1,79}?(?=[ \\u00A0]*(?:[,;\\n]|$))",
+      "flags": "gmu",
+      "confidence": 0.8,
+      "domains": [
+        "legal"
+      ],
+      "classification": {
+        "category": "organization",
+        "subtype": "company",
+        "applicability": "baseline",
+        "verticals": [
+          "legal"
+        ],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "Company name after a form label such as \"Razón social:\" or \"Empresa:\" (Docudis addition). The value must start with a capital.",
+      "examples": [
+        "Empresa: Transportes Guadalquivir",
+        "Razón social: Asesoría Méndez y Roldán"
+      ]
+    },
+    {
+      "id": "regex:es:company_head",
+      "entityType": "COMPANY",
+      "pattern": "(?<![\\p{L}])(?:Clínica|Asesoría|Gestoría|Seguros|Talleres|Transportes|Inmobiliaria|Banco|Caja|Farmacia|Restaurante|Hotel|Grupo|Bodegas|Construcciones|Suministros|Distribuciones|Laboratorio|Academia|Aula|Instituto|LABORATORIO|CLÍNICA|GRUPO|TRANSPORTES|SEGUROS|ACADEMIA)(?:[ \\u00A0](?:(?:de|del|la|las|los|y|e)[ \\u00A0])*(?:\\p{Lu}[\\p{L}\\d.'’&-]*|\\d+[\\p{L}\\d]*)){1,5}",
+      "flags": "gu",
+      "confidence": 0.8,
+      "domains": [
+        "general"
+      ],
+      "classification": {
+        "category": "organization",
+        "subtype": "company",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "Spanish business name that starts with a trade noun, \"Clínica Dental Sonrisa Norte\", \"Seguros Atlántida Mutua\" (Docudis addition). At least one capitalised word must follow, so \"la clínica\" in prose is not a name. (Docudis change 2026-09-21: added Laboratorio / Academia / Aula / Instituto and the all-capitals spellings a letterhead uses, and a number may finish the name (\"Université Lumière Lyon 2\"), which the per-region company rules already allowed and this one did not.)",
+      "examples": [
+        "Clínica Dental Sonrisa Norte",
+        "Seguros Atlántida Mutua"
+      ]
+    },
+    {
+      "id": "regex:es:nuss",
+      "entityType": "SSN",
+      "pattern": "\\b\\d{2}[-/]?\\d{8}[-/]?\\d{2}\\b|\\b\\d{2}[-/]\\d{7,8}(?:[-/]\\d{2})?\\b",
+      "flags": "g",
+      "confidence": 0.75,
+      "domains": [
+        "medical",
+        "hr"
+      ],
+      "classification": {
+        "category": "identity",
+        "subtype": "social_security_number",
+        "applicability": "baseline",
+        "verticals": [
+          "healthcare",
+          "employment"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Spanish Social Security Number (NUSS/NAF, 12 digits: province + sequential + check) (Docudis change 2026-09-21: a second alternative for the 7-digit middle group and the two-group form, which covers \"Cód. Cuenta Cotización 09/1048823/61\" and the colegiado numbers \"50/5012874\". The original alternative is kept so nothing it matched is lost.)",
+      "examples": [
+        "28-12345678-56",
+        "09/1048823/61",
+        "50/5012874"
+      ]
+    },
+    {
+      "id": "regex:es:hoja_registral",
+      "entityType": "SSN",
+      "pattern": "\\b(?:[Hh]oja|H\\.?)[ \\u00A0]?[A-Z]{1,2}[- \\u00A0]?\\d{3,7}\\b",
+      "flags": "g",
+      "confidence": 0.8,
+      "domains": [
+        "legal"
+      ],
+      "classification": {
+        "category": "businessRecord",
+        "subtype": "business_registration",
+        "applicability": "specialized",
+        "verticals": [
+          "legal"
+        ],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "Spanish Mercantile Registry sheet number, \"Hoja M-123456\", \"H AB 23576\": identifies the company (Docudis addition) (Docudis change 2026-09-21: \"hoja\" is lowercase in running prose, which is where it actually appears: \"folio 1, hoja A-156980\".)",
+      "examples": [
+        "Hoja M-123456",
+        "H AB 23576",
+        "H B 558948"
+      ]
+    },
+    {
+      "id": "regex:es:date_words",
+      "entityType": "DATE",
+      "pattern": "\\b\\d{1,2}\\s+de\\s+(?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre)\\s+(?:de\\s+|del\\s+)?\\d{4}\\b",
+      "flags": "gi",
+      "confidence": 0.85,
+      "domains": [
+        "general"
+      ],
+      "classification": {
+        "category": "temporal",
+        "subtype": "date_words",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "optional",
+        "defaultAction": "contextual",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "Spanish date with a month name (\"20 de mayo de 2024\") (Docudis addition)",
+      "examples": [
+        "20 de mayo de 2024",
+        "1 de enero del 2023"
+      ]
+    },
+    {
+      "id": "regex:es:plate",
+      "entityType": "OTHER",
+      "pattern": "\\b\\d{4}[ \\u00A0-]?[BCDFGHJKLMNPRSTVWXYZ]{3}\\b",
+      "flags": "gu",
+      "confidence": 0.8,
+      "domains": [
+        "identity"
+      ],
+      "classification": {
+        "category": "identity",
+        "subtype": "vehicle_registration",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "Spanish vehicle registration since 2000: four digits and three letters, drawn from an alphabet with no vowels and no Q (Docudis addition 2026-09-21). The excluded letters are what keeps this off ordinary text.",
+      "examples": [
+        "4817 LKM",
+        "1234BCD"
+      ]
+    }
+  ]
+}

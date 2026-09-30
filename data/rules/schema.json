@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/WLojek/DocCloak.Core/rules/schema.json",
+  "title": "DocCloak shared regex rule pack",
+  "description": "Canonical cross-runtime rule format (architecture doc section 6). One file per region plus universal.json. Patterns are restricted to the ECMAScript/Python common subset; flags live in the flags field (no inline flags); validate is a name resolved against the per-runtime validator registry (validators.ts / validators.py).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "region", "scope", "rules"],
+  "properties": {
+    "schemaVersion": {
+      "const": 2
+    },
+    "region": {
+      "type": "string",
+      "pattern": "^(universal|[a-z]{2})$"
+    },
+    "scope": {
+      "$ref": "#/$defs/scope"
+    },
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/rule" }
+    }
+  },
+  "$defs": {
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["jurisdictions", "languages"],
+      "properties": {
+        "jurisdictions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          }
+        },
+        "languages": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z]{2,3}(?:-[A-Za-z0-9]+)*$"
+          }
+        }
+      }
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "entityType", "pattern", "flags", "confidence", "domains", "description", "classification"],
+      "properties": {
+        "id": {
+          "description": "Stable detector identifier, e.g. regex:pl:pesel",
+          "type": "string",
+          "pattern": "^regex:(universal|[a-z]{2}):[a-z0-9_-]+$"
+        },
+        "entityType": {
+          "enum": [
+            "PERSON",
+            "EMAIL",
+            "PHONE",
+            "SSN",
+            "NUMBER",
+            "CREDIT_CARD",
+            "DATE",
+            "CURRENCY",
+            "IP_ADDRESS",
+            "IBAN",
+            "ADDRESS",
+            "COMPANY",
+            "SECRET",
+            "API_KEY",
+            "OTHER"
+          ]
+        },
+        "pattern": {
+          "description": "Regex source in the ECMAScript/Python common subset (compiled per runtime)",
+          "type": "string",
+          "minLength": 1
+        },
+        "flags": {
+          "description": "Regex flags; the g flag is mandatory, inline flags in the pattern are forbidden",
+          "type": "string",
+          "pattern": "^g[imsuy]*$"
+        },
+        "confidence": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "domains": {
+          "description": "Legacy DocCloak tags retained for source compatibility. New selection and UI code uses classification.category and classification.verticals.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": ["financial", "medical", "legal", "hr", "identity", "contact", "technical", "general"]
+          }
+        },
+        "classification": {
+          "$ref": "#/$defs/classification"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "examples": {
+          "description": "Strings that MUST match the compiled pattern (and pass validate, if any); drives the cross-runtime conformance test",
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "falsePositiveNotes": {
+          "type": "string",
+          "minLength": 1
+        },
+        "validate": {
+          "description": "Name of a post-match validation function in the runtime validator registry",
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*$"
+        }
+      }
+    },
+    "classification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "category",
+        "subtype",
+        "applicability",
+        "verticals",
+        "protectionLevel",
+        "defaultAction",
+        "provenance",
+        "status"
+      ],
+      "properties": {
+        "category": {
+          "enum": [
+            "identity",
+            "contact",
+            "location",
+            "financialAccount",
+            "financialValue",
+            "organization",
+            "businessRecord",
+            "medicalRecord",
+            "legalRecord",
+            "digital",
+            "credential",
+            "temporal",
+            "genericIdentifier"
+          ]
+        },
+        "subtype": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "applicability": {
+          "enum": ["baseline", "specialized"]
+        },
+        "verticals": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": ["healthcare", "legal", "finance", "employment", "insurance", "technology", "utilities"]
+          }
+        },
+        "protectionLevel": {
+          "enum": ["essential", "recommended", "optional"]
+        },
+        "defaultAction": {
+          "enum": ["hide", "detectOnly", "contextual"]
+        },
+        "provenance": {
+          "enum": ["doccloak", "doccloakModified", "docudis"]
+        },
+        "status": {
+          "enum": ["active", "experimental", "deprecated"]
+        }
+      }
+    }
+  }
+}

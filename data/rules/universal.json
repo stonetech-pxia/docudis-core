@@ -1,0 +1,1143 @@
+{
+  "schemaVersion": 2,
+  "region": "universal",
+  "scope": {
+    "jurisdictions": [],
+    "languages": []
+  },
+  "rules": [
+    {
+      "id": "regex:universal:email",
+      "entityType": "EMAIL",
+      "pattern": "[a-zA-Z0-9._%+-]+\\. [a-z0-9][a-zA-Z0-9._%+-]* ?@ ?[a-zA-Z0-9-]+\\. [a-z]{2,}(?:\\.[a-z]{2,})?|[a-zA-Z0-9._%+-]+ ?@ ?(?:[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}|[a-zA-Z0-9-]+\\. [a-z]{2,}(?:\\.[a-z]{2,})?)",
+      "flags": "g",
+      "confidence": 0.95,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "contact",
+        "subtype": "email",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Email address (Docudis changes: 2026-09-19 one space allowed on either side of the @, ML Kit OCR reads \"citas@ sonrisasur-ejemplo.es\"; 2026-09-23 one space after a dot, read as \"priya. raman@example. com\" on both phones: in the domain only for a one-label domain and a lowercase TLD, so \"a@b.com. then\" still ends at .com; in the name only when the domain has the same OCR space, so \"now. dana@x.com\" does not take \"now.\")",
+      "examples": [
+        "john@example.com",
+        "user.name+tag@domain.co.uk",
+        "citas@ sonrisasur-ejemplo.es",
+        "priya. raman@example. com"
+      ]
+    },
+    {
+      "id": "regex:universal:phone_intl",
+      "entityType": "PHONE",
+      "pattern": "(?:\\+|(?<![A-Za-z0-9])t(?=[1-9]))\\d[\\d \\u00A0()-]{7,18}\\d",
+      "flags": "g",
+      "confidence": 0.85,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "contact",
+        "subtype": "phone",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "International phone number with + prefix (Docudis changes: 2026-09-18 no line break inside the number, it used to take the first digits of a postcode or a year on the next line; 2026-09-23 a lone \"t\" right before the digits counts as the +, iOS OCR read \"+44 7700 900123\" as \"t447700 900123\")",
+      "examples": [
+        "+1 (555) 123-4567",
+        "+48 600 123 456",
+        "+44 20 7946 0958",
+        "t447700 900123"
+      ]
+    },
+    {
+      "id": "regex:universal:iban",
+      "entityType": "IBAN",
+      "pattern": "\\b[A-Z]{2}[ \\u00A0]?\\d{2}[ \\u00A0]?[A-Z\\d \\u00A0]{10,30}\\b",
+      "flags": "g",
+      "confidence": 0.9,
+      "domains": [
+        "financial"
+      ],
+      "classification": {
+        "category": "financialAccount",
+        "subtype": "iban",
+        "applicability": "baseline",
+        "verticals": [
+          "finance"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "IBAN (2-letter country code + 2 check digits + up to 30 alphanumeric). Docudis change 2026-09-21: the separator class was \\s, which includes the newline, so an IBAN at the end of a line ran on into the uppercase word starting the next one (\"…7536 63\nBIC\"). The mod-97 check then failed and the whole IBAN went undetected, leaving it to the loose long-number rule, which covered only the digits and left the country and bank code in plain sight.",
+      "examples": [
+        "GB29 NWBK 6016 1331 9268 19",
+        "DE89 3704 0044 0532 0130 00",
+        "PL61 1090 1014 0000 0712 1981 2874"
+      ],
+      "validate": "ibanMod97"
+    },
+    {
+      "id": "regex:universal:iban_masked",
+      "entityType": "IBAN",
+      "pattern": "\\b[A-Z]{2}[ \\u00A0]?\\d{2}(?=[ \\u00A0A-Z\\d*x]{0,40}[*x])(?:[ \\u00A0]?[A-Z\\d*x]{2,6}){2,8}",
+      "flags": "gu",
+      "confidence": 0.85,
+      "domains": [
+        "financial"
+      ],
+      "classification": {
+        "category": "financialAccount",
+        "subtype": "masked_iban",
+        "applicability": "baseline",
+        "verticals": [
+          "finance"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "Part-masked IBAN, \"ES90 8200 **** **** **** 4820\" (Docudis addition 2026-09-21). The validated iban rule cannot see these: masking characters break the mod-97 check, so a statement that stars out the middle of its own IBAN left the country, bank and last four digits in plain sight.",
+      "examples": [
+        "ES90 8200 **** **** **** 4820",
+        "FR76 8457 **** **** **** **31 349"
+      ]
+    },
+    {
+      "id": "regex:universal:masked_account",
+      "entityType": "OTHER",
+      "pattern": "(?<![\\w*])[xX*]{4,}[ \\u00A0-]?\\d{3,6}\\b",
+      "flags": "gu",
+      "confidence": 0.85,
+      "domains": [
+        "financial"
+      ],
+      "classification": {
+        "category": "financialAccount",
+        "subtype": "masked_bank_account",
+        "applicability": "baseline",
+        "verticals": [
+          "finance"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "Account number masked down to its last digits, \"xxxxxx9026\" (Docudis addition 2026-09-21).",
+      "examples": [
+        "xxxxxx9026",
+        "****1234"
+      ]
+    },
+    {
+      "id": "regex:universal:credit_card",
+      "entityType": "CREDIT_CARD",
+      "pattern": "(?<!(?:SIRE[TN]|[Ss]ire[tn])[^\\n\\d]{0,15})\\b\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{1,7}\\b",
+      "flags": "g",
+      "confidence": 0.9,
+      "domains": [
+        "financial"
+      ],
+      "classification": {
+        "category": "financialAccount",
+        "subtype": "payment_card",
+        "applicability": "baseline",
+        "verticals": [
+          "finance"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Credit/debit card number (13-19 digits, possibly spaced/dashed) (Docudis change 2026-09-18: not after a SIRET or SIREN label, a SIRET passes the Luhn check by design and every SIRET written without spaces was a card)",
+      "examples": [
+        "4532 0151 1283 0366",
+        "5425-2334-3010-9903"
+      ],
+      "falsePositiveNotes": "Luhn validation reduces false positives from random digit sequences",
+      "validate": "luhn"
+    },
+    {
+      "id": "regex:universal:currency_symbol_prefix",
+      "entityType": "CURRENCY",
+      "pattern": "[$€£¥₹₽₩₺₴][ \\u00A0]?(?:\\d{1,3}(?:[,. \\u00A0\\u202F]\\d{3})+|\\d+)(?:[.,]\\d{1,2})?\\b",
+      "flags": "g",
+      "confidence": 0.8,
+      "domains": [
+        "financial"
+      ],
+      "classification": {
+        "category": "financialValue",
+        "subtype": "amount",
+        "applicability": "specialized",
+        "verticals": [
+          "finance"
+        ],
+        "protectionLevel": "optional",
+        "defaultAction": "detectOnly",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Currency amount with leading symbol ($, €, £, ¥, ₹, ₽, ₩, ₺, ₴) (Docudis change 2026-09-18: amounts without a thousands separator (1000.00) and no line break inside the number)",
+      "examples": [
+        "$45,000",
+        "€1.234,56",
+        "£100.00",
+        "¥50,000"
+      ]
+    },
+    {
+      "id": "regex:universal:currency_code_suffix",
+      "entityType": "CURRENCY",
+      "pattern": "\\b(?:\\d{1,3}(?:[,. \\u00A0\\u202F]\\d{3})+|\\d+)(?:[.,]\\d{1,2})?[ \\u00A0]?(?:USD|EUR|GBP|CHF|JPY|PLN|SEK|NOK|DKK|CZK|HUF|RON|BGN|HRK|RUB|UAH|TRY|BRL|ARS|MXN|COP|CLP|PEN|INR|CNY|KRW|AUD|CAD|NZD|ZAR|SGD|HKD|TWD|THB|MYR|IDR|PHP|VND|AED|SAR|QAR|KWD|BHD|OMR|ILS|EGP|NGN|KES|GHS|TZS|UGX)\\b",
+      "flags": "g",
+      "confidence": 0.8,
+      "domains": [
+        "financial"
+      ],
+      "classification": {
+        "category": "financialValue",
+        "subtype": "amount",
+        "applicability": "specialized",
+        "verticals": [
+          "finance"
+        ],
+        "protectionLevel": "optional",
+        "defaultAction": "detectOnly",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Currency amount with trailing ISO code (e.g., \"1,000.00 USD\") (Docudis change 2026-09-18: amounts without a thousands separator (445000 EUR))",
+      "examples": [
+        "1,000.00 USD",
+        "45 000 PLN",
+        "100.50 EUR",
+        "445000 EUR",
+        "1000.00 EUR"
+      ]
+    },
+    {
+      "id": "regex:universal:currency_code_prefix",
+      "entityType": "CURRENCY",
+      "pattern": "\\b(?:USD|EUR|GBP|CHF|JPY|CNY|RMB|HKD|SGD|AUD|NZD|CAD|INR|SEK|NOK|DKK|PLN|CZK|HUF|RUB|BRL|MXN|ZAR|KRW|TWD|AED|SAR)[ \\u00A0]?(?:\\d{1,3}(?:[,. \\u00A0\\u202F]\\d{3})+|\\d+)(?:[.,]\\d{1,2})?(?:\\s?(?:[Mm]illion|[Bb]illion|[Tt]housand|mn|bn|[mk]))?\\b",
+      "flags": "g",
+      "confidence": 0.8,
+      "domains": [
+        "financial"
+      ],
+      "classification": {
+        "category": "financialValue",
+        "subtype": "amount",
+        "applicability": "specialized",
+        "verticals": [
+          "finance"
+        ],
+        "protectionLevel": "optional",
+        "defaultAction": "detectOnly",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "Currency amount with a leading ISO code, optionally scaled (e.g., \"NZD 4.2 million\", \"USD 1,250.50\") (Docudis addition) (Docudis change 2026-09-18: amounts without a thousands separator)",
+      "examples": [
+        "NZD 4.2 million",
+        "USD 1,250.50",
+        "EUR 300k"
+      ]
+    },
+    {
+      "id": "regex:universal:currency_symbol_suffix",
+      "entityType": "CURRENCY",
+      "pattern": "\\b(?:\\d{1,3}(?:[,. \\u00A0\\u202F]\\d{3})+|\\d+)(?:[.,]\\d{1,2})?[ \\u00A0]?(?:€|£|zł|kr|Kč|lei|лв|Ft|kn|₽|грн|₺|R\\$|S\\/\\.|руб|₹|元|圆|円|원|ر\\.س|ر\\.ق|د\\.إ|₪|₦|₵|₱|₫|₸|₼|₾|฿|RM|Rp|đ)(?=\\s|$|[.,;:!?)}\\]])",
+      "flags": "g",
+      "confidence": 0.85,
+      "domains": [
+        "financial"
+      ],
+      "classification": {
+        "category": "financialValue",
+        "subtype": "amount",
+        "applicability": "specialized",
+        "verticals": [
+          "finance"
+        ],
+        "protectionLevel": "optional",
+        "defaultAction": "detectOnly",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Currency amount with trailing symbol (€, £, zł, kr, Kč, lei, etc.), as written in French, German and Spanish documents (Docudis change 2026-09-18: amounts without a thousands separator)",
+      "examples": [
+        "12 450,00 €",
+        "4 200 €",
+        "1.234,56 €",
+        "8 500,00 zł",
+        "1 200 kr",
+        "3.500 Kč",
+        "10 000 lei",
+        "5 000 Ft"
+      ]
+    },
+    {
+      "id": "regex:universal:currency_word_suffix",
+      "entityType": "CURRENCY",
+      "pattern": "\\b(?:\\d{1,3}(?:[,. \\u00A0\\u202F]\\d{3})+|\\d+)(?:[.,]\\d{1,2})?[ \\u00A0]?(?:[Ee]uros?|EUROS?|[Dd]ollars?|DOLLARS?|dólares|DÓLARES)\\b",
+      "flags": "g",
+      "confidence": 0.8,
+      "domains": [
+        "financial"
+      ],
+      "classification": {
+        "category": "financialValue",
+        "subtype": "amount",
+        "applicability": "specialized",
+        "verticals": [
+          "finance"
+        ],
+        "protectionLevel": "optional",
+        "defaultAction": "detectOnly",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "Amount followed by the currency as a word (Docudis addition: BODACC \"125000.00 euros\", BORME \"3.000,00 Euros\")",
+      "examples": [
+        "125000.00 euros",
+        "3.000,00 Euros",
+        "60.000,00 Euros",
+        "250 dollars"
+      ]
+    },
+    {
+      "id": "regex:universal:ipv4",
+      "entityType": "IP_ADDRESS",
+      "pattern": "(?<!\\d\\.)\\b(?:(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\b(?!\\.\\d)",
+      "flags": "g",
+      "confidence": 0.9,
+      "domains": [
+        "technical"
+      ],
+      "classification": {
+        "category": "digital",
+        "subtype": "ip_address",
+        "applicability": "specialized",
+        "verticals": [
+          "technology"
+        ],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "IPv4 address (Docudis change 2026-09-18: exactly four dotted groups, not four of the five pairs of a French phone number \"01.23.45.67.89\")",
+      "examples": [
+        "192.168.1.1",
+        "10.0.0.255",
+        "172.16.0.1"
+      ],
+      "validate": "ipOctets"
+    },
+    {
+      "id": "regex:universal:ipv6",
+      "entityType": "IP_ADDRESS",
+      "pattern": "\\b(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}\\b",
+      "flags": "g",
+      "confidence": 0.9,
+      "domains": [
+        "technical"
+      ],
+      "classification": {
+        "category": "digital",
+        "subtype": "ip_address",
+        "applicability": "specialized",
+        "verticals": [
+          "technology"
+        ],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "IPv6 address (full form)",
+      "examples": [
+        "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
+      ]
+    },
+    {
+      "id": "regex:universal:mac_address",
+      "entityType": "OTHER",
+      "pattern": "\\b[0-9a-fA-F]{2}(?::[0-9a-fA-F]{2}){5}\\b",
+      "flags": "g",
+      "confidence": 0.85,
+      "domains": [
+        "technical"
+      ],
+      "classification": {
+        "category": "digital",
+        "subtype": "device_address",
+        "applicability": "specialized",
+        "verticals": [
+          "technology"
+        ],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "MAC address (colon-separated)",
+      "examples": [
+        "00:1B:44:11:3A:B7"
+      ]
+    },
+    {
+      "id": "regex:universal:date_numeric",
+      "entityType": "DATE",
+      "pattern": "(?<![\\d./-])(?:(?:0?[1-9]|[12]\\d|3[01])[./-](?:0?[1-9]|1[0-2])|(?:0?[1-9]|1[0-2])[./-](?:0?[1-9]|[12]\\d|3[01]))[./-](?:19|20)\\d{2}(?!\\d|[./-]\\d)",
+      "flags": "g",
+      "confidence": 0.85,
+      "domains": [
+        "general"
+      ],
+      "classification": {
+        "category": "temporal",
+        "subtype": "date_numeric",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "optional",
+        "defaultAction": "contextual",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Numeric date (dd.mm.yyyy, dd/mm/yyyy, mm/dd/yyyy) (Docudis change 2026-09-18: day and month are range-checked, so it is confident enough to beat a postal rule that grabs the year)",
+      "examples": [
+        "15.03.2025",
+        "15/03/2025",
+        "09/09/2026",
+        "12-25-2000"
+      ],
+      "falsePositiveNotes": "Cannot distinguish dd/mm/yyyy from mm/dd/yyyy — both valid"
+    },
+    {
+      "id": "regex:universal:date_numeric_short",
+      "entityType": "DATE",
+      "pattern": "(?<![\\d./-])(?<!(?:ersion|ersión|vision|visión|uild|lease|ction|cción|lause|igure|igura|unto|oint|ículo|ticle)[ \\u00A0]?)(?:(?:0?[1-9]|[12]\\d|3[01])[./-](?:0?[1-9]|1[0-2])|(?:0?[1-9]|1[0-2])[./-](?:0?[1-9]|[12]\\d|3[01]))[./-]\\d{2}(?!\\d|[./-]\\d)",
+      "flags": "g",
+      "confidence": 0.75,
+      "domains": [
+        "general"
+      ],
+      "classification": {
+        "category": "temporal",
+        "subtype": "date_numeric_short",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "optional",
+        "defaultAction": "contextual",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "Numeric date with a two-digit year, \"4.09.24\", \"06/02/00\" (Docudis addition: BORME registry dates). Day and month are range-checked and version, section or clause numbers are skipped.",
+      "examples": [
+        "4.09.24",
+        "27.08.24",
+        "06/02/00"
+      ],
+      "falsePositiveNotes": "A dotted number after a word other than version/section/clause can still look like a date."
+    },
+    {
+      "id": "regex:universal:date_iso",
+      "entityType": "DATE",
+      "pattern": "\\b\\d{4}-\\d{2}-\\d{2}\\b",
+      "flags": "g",
+      "confidence": 0.8,
+      "domains": [
+        "general"
+      ],
+      "classification": {
+        "category": "temporal",
+        "subtype": "date_iso",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "optional",
+        "defaultAction": "contextual",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "ISO 8601 date (yyyy-mm-dd)",
+      "examples": [
+        "2025-03-15",
+        "1990-01-01"
+      ]
+    },
+    {
+      "id": "regex:universal:date_word",
+      "entityType": "DATE",
+      "pattern": "\\b\\d{1,2}\\s+[\\p{L}]{3,}\\s+\\d{4}\\b",
+      "flags": "gu",
+      "confidence": 0.8,
+      "domains": [
+        "general"
+      ],
+      "classification": {
+        "category": "temporal",
+        "subtype": "date_words",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "optional",
+        "defaultAction": "contextual",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Date with month name in any language (e.g., \"10 marca 2025\", \"15 March 2025\")",
+      "examples": [
+        "10 March 2025",
+        "15 marca 2025",
+        "1 janvier 2024"
+      ]
+    },
+    {
+      "id": "regex:universal:date_month_first",
+      "entityType": "DATE",
+      "pattern": "\\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\\s+\\d{1,2},?\\s+\\d{4}\\b",
+      "flags": "gi",
+      "confidence": 0.85,
+      "domains": [
+        "general"
+      ],
+      "classification": {
+        "category": "temporal",
+        "subtype": "date_words",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "optional",
+        "defaultAction": "contextual",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "English date with month name first (e.g., \"March 15, 2025\")",
+      "examples": [
+        "March 15, 2025",
+        "Jan 1 2024",
+        "December 25, 2023"
+      ]
+    },
+    {
+      "id": "regex:universal:bic",
+      "entityType": "OTHER",
+      "pattern": "(?<=\\b(?:BIC|SWIFT)(?:[ \\u00A0]?(?:CODE|/BIC))?[ \\t\\u00A0]{0,30}:?[ \\t\\u00A0]{0,30})[A-Z]{6}[A-Z0-9]{2}(?:[A-Z0-9]{3})?\\b",
+      "flags": "gu",
+      "confidence": 0.9,
+      "domains": [
+        "financial"
+      ],
+      "classification": {
+        "category": "financialAccount",
+        "subtype": "bic",
+        "applicability": "baseline",
+        "verticals": [
+          "finance"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "BIC / SWIFT code after its label (Docudis addition 2026-09-21). Anchored on the label rather than the shape: bare 8-letter uppercase words are everywhere in these documents (CAMPBELL = CAMP+BE+LL parses as a valid BIC), and an unanchored shape rule scored 143 over-redactions across the consumer and public sets.",
+      "examples": [
+        "BIC: NWBKGB2L",
+        "SWIFT: CHASUS33",
+        "BIC : CMBRFR2BXXX"
+      ]
+    },
+    {
+      "id": "regex:universal:labeled_id",
+      "entityType": "SSN",
+      "pattern": "(?<=[\\p{L}][\\p{L}\\s.()\\d-]{0,30}[:#][ \\t\\u00A0]{0,20})(?:(?=[A-Z0-9/-]*\\d)(?:[A-Z0-9][A-Z0-9/-]{5,}|[A-Z0-9][A-Z0-9-]*/[A-Z0-9/-]{2,})|[A-Z0-9]{2,4}[\\s-]?\\d{4,}(?:[\\s-]\\d+)*)\\b",
+      "flags": "giu",
+      "confidence": 0.7,
+      "domains": [
+        "identity",
+        "general"
+      ],
+      "classification": {
+        "category": "genericIdentifier",
+        "subtype": "labeled_identifier",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Labeled identifier (Key: Value pattern, e.g. \"ID: ABC12345\", \"Chassis no. (last 6): 408213\"). Docudis change 2026-09-21: the value shape gained two alternatives (6+ characters, or any length containing a slash, both requiring a digit) and the label may now contain dots, parentheses and digits. The original shape is kept as the last alternative: dropping it turned seven half-hidden account and policy numbers back into full leaks.",
+      "examples": [
+        "ID: ABC12345",
+        "Nº de colegiado: 36/3607152",
+        "Nº de bastidor: VSSZZZKLZNR041877"
+      ],
+      "falsePositiveNotes": "Broad pattern — catches many key:value pairs that may not be PII"
+    },
+    {
+      "id": "regex:universal:labeled_id_no",
+      "entityType": "SSN",
+      "pattern": "(?<!\\b(?:loi|Loi|décret|Décret|arrêté|Arrêté|ley|Ley|article|Article|artículo|Artículo|BODACC [AB]|BORME|BOE|JORF)[ \\u00A0.]{1,3}(?:No|Nº|N°|Nr|nº|n°|Ref|ref|Réf|réf|Núm|Matricule|matricule)\\.?(?:[ \\u00A0](?:de|del|du|of)?[\\p{Ll}']{2,14}){0,2}[ \\t\\u00A0]*\\n?[ \\t\\u00A0]*:?[ \\t\\u00A0]*)(?<=\\b(?:No|Nº|N°|Nr|nº|n°|Ref|ref|Réf|réf|Núm|Matricule|matricule)\\.?(?:[ \\u00A0](?:de|del|du|of)?[\\p{Ll}']{2,14}){0,2}[ \\t\\u00A0]*\\n?[ \\t\\u00A0]*:?[ \\t\\u00A0]*)(?=[A-Z0-9/-]*\\d)[A-Z0-9][A-Z0-9/-]{4,}\\b",
+      "flags": "gu",
+      "confidence": 0.75,
+      "domains": [
+        "identity",
+        "general"
+      ],
+      "classification": {
+        "category": "genericIdentifier",
+        "subtype": "labeled_identifier",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "Identifier after a \"No.\" / \"Nº\" / \"Ref\" / \"Matricule\" label, with the value allowed on the next line for column layouts (Docudis addition 2026-09-21). Up to two lowercase words may sit between the label and the value (\"n° allocataire 4182736\", \"Nº de empleado: 00412\"). The negative lookbehind drops publication and statute numbers (\"BODACC A n° 20260179\", \"loi n° 89-462\"), which were the only over-redactions this rule produced.",
+      "examples": [
+        "Registered in England and Wales No. 929027",
+        "n° allocataire 4182736",
+        "Matricule\n00147"
+      ]
+    },
+    {
+      "id": "regex:universal:labeled_id_short",
+      "entityType": "SSN",
+      "pattern": "(?<=(?:^|[^\\p{L}\\p{N}])(?:ID|Id|User ID|User Id|Member ID|Member Id|Customer ID|Client ID|Patient ID|Employee ID|Group|GROUP|Group No|Group Number|Group ID|Member|Member No|Membership No|Policy|Policy No|Login|Username|User name|Identifiant|Identificador|Usuario|N° adhérent|Nº de socio)[ \\t\\u00A0]*(?:#|No\\.?)?[ \\t\\u00A0]*[:#][ \\t\\u00A0]{0,3})(?:(?=[A-Za-z0-9]*\\d)(?=[A-Za-z0-9]*[A-Za-z])[A-Za-z0-9]{4,20}|(?=[A-Za-z]*[a-z][A-Z])[A-Za-z]{6,20})(?![\\p{L}\\p{N}])",
+      "flags": "gu",
+      "confidence": 0.75,
+      "domains": [
+        "identity",
+        "general"
+      ],
+      "classification": {
+        "category": "genericIdentifier",
+        "subtype": "labeled_identifier",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "Short or letters-only identifier after an explicit identifier label and a colon or #, the values labeled_id lets through (Docudis addition 2026-09-26, found on photographed forms): 4 to 20 letters and digits with at least one of each (\"Group #: LN59C\"), or 6 to 20 letters whose case changes from lower to upper inside the word (\"ID: jUefATevv\"). A capitalised or all-caps word (\"ID: Smith\", \"ID: PASSPORT\") is not an identifier.",
+      "examples": [
+        "Group #: LN59C",
+        "ID: jUefATevv"
+      ]
+    },
+    {
+      "id": "regex:universal:licence_body_id",
+      "entityType": "SSN",
+      "pattern": "(?<=\\b(?:DL|CLIA|NPI|DEA|NMLS|NICEIC|Gas Safe|USDOT|FMCSA|MVR|GMC|NMC|HCPC)(?:[ \\u00A0][\\p{L}.]{2,14}){0,2}[ \\u00A0])(?=[A-Z0-9-]*\\d)[A-Z0-9][A-Z0-9-]{4,}\\b",
+      "flags": "gu",
+      "confidence": 0.8,
+      "domains": [
+        "identity",
+        "medical",
+        "hr"
+      ],
+      "classification": {
+        "category": "genericIdentifier",
+        "subtype": "professional_registration",
+        "applicability": "baseline",
+        "verticals": [
+          "healthcare",
+          "employment"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "Licence or trade-registration number named by its issuing body rather than by a \"No.\" label (\"Ohio DL UT482913\", \"CLIA 14D2087315\", \"NICEIC Approved Contractor 047731\") (Docudis addition 2026-09-21). Up to two words may sit between the body and the number. The list of bodies is the part that has to grow: it is GB / IE / US trades, healthcare and driving today, and a body that is not on it will not be matched.",
+      "examples": [
+        "Ohio DL UT482913",
+        "CLIA 14D2087315",
+        "NICEIC Approved Contractor 047731"
+      ]
+    },
+    {
+      "id": "regex:universal:named_national_id",
+      "entityType": "NUMBER",
+      "pattern": "(?<=\\b(?:DNI|NIE|NIF|CIF|NIR|NINO|SSN|CUPS|NHS(?:[ \\u00A0](?:[Nn]umber|[Nn]o\\.?))?|NI[ \\u00A0](?:[Nn]umber|[Nn]o\\.?)|National Insurance(?:[ \\u00A0](?:[Nn]umber|[Nn]o\\.?))?|Social Security(?:[ \\u00A0](?:[Nn]umber|[Nn]o\\.?))?|[Ss]écurité sociale)[ \\t\\u00A0]{0,3}[:#]?[ \\t\\u00A0]{0,3}\\n?[ \\t\\u00A0]{0,3})(?=[A-Z0-9 \\u00A0-]{6})(?:[A-Z]{1,2}[ \\u00A0-])?[A-Z0-9]*\\d[A-Z0-9]*(?:[ \\u00A0-](?:[A-Z]{1,2}[ \\u00A0-])?[A-Z0-9]*\\d[A-Z0-9]*)*(?:[ \\u00A0-][A-Z]{1,2})?(?![\\p{L}\\p{N}])",
+      "flags": "gu",
+      "confidence": 0.88,
+      "domains": [
+        "identity"
+      ],
+      "classification": {
+        "category": "identity",
+        "subtype": "national_id",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "A national ID named by its label, whether or not it passes its checksum (Docudis addition 2026-09-23). A checksum rule (es:dni, fr:nir, gb:nhs, ...) drops a match that fails, and one typo or OCR slip then left \"DNI 48291736K\" fully visible, because long_number cannot take a value with a letter in it. Reported as NUMBER: a valid value still becomes ID through its checksum rule, which outranks this one. Confident so it beats a loose phone rule on the same digits (\"NHS number 485 777 3456\" was a US phone), below 0.9 so a specific ID rule without a checksum (es:nie) keeps its type on a tie. The value may start the next line: a photographed letter wraps \"indicando su DNI\" / \"30567812W\".",
+      "examples": [
+        "DNI 48291736K",
+        "NHS number 485 777 3456",
+        "N° de sécurité sociale : 1 84 07 31 555 042 17",
+        "CUPS ES0021000012345678AB",
+        "NINO AB 12 34 56 C",
+        "indicando su DNI\n30567812W"
+      ]
+    },
+    {
+      "id": "regex:universal:long_number",
+      "entityType": "SSN",
+      "pattern": "(?<![.\\d])\\b\\d(?:\\d|[ \\u00A0-](?=\\d)){7,}\\d\\b(?![.\\d])",
+      "flags": "g",
+      "confidence": 0.5,
+      "domains": [
+        "identity",
+        "financial"
+      ],
+      "classification": {
+        "category": "genericIdentifier",
+        "subtype": "long_number",
+        "applicability": "baseline",
+        "verticals": [
+          "finance"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Standalone long digit sequence (8+ digits) — likely IDs, account numbers, case numbers (Docudis change 2026-09-18: one separator between digits at most, so year ranges \"2017 - 2021\" and page ranges are not identifiers)",
+      "examples": [
+        "123456789",
+        "123-456-789-00"
+      ],
+      "falsePositiveNotes": "Low confidence — many non-PII numbers match. Overlap resolution with specific patterns prevents double-detection."
+    },
+    {
+      "id": "regex:universal:postal_city",
+      "entityType": "ADDRESS",
+      "pattern": "(?<!\\d{3}[ \\u00A0]\\d{3}[ \\u00A0])\\b(?:\\d{5}|\\d{2}-\\d{3}|\\d{4}-\\d{3}|\\d{3}\\s\\d{2})[ \\u00A0]\\p{Lu}[\\p{L}'’-]*(?:[ \\u00A0-](?:(?:sur|sous|de|du|des|la|le|les|en|lès|aux|del|los|las)[ \\u00A0-])*\\p{Lu}[\\p{L}'’-]*)*(?![\\p{L}])",
+      "flags": "gu",
+      "confidence": 0.65,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "location",
+        "subtype": "postal_code",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Postal/zip code followed by city name (various country formats) (Docudis change 2026-09-18: exactly one space before the city and no SIREN-like pair of digit groups before the code: \"00098    Code\" in a table is not a postcode)",
+      "examples": [
+        "00-950 Warszawa",
+        "75008 Paris",
+        "111 22 Stockholm"
+      ],
+      "falsePositiveNotes": "The city name must start with a capital letter and the digits must look like a postal code (5 digits, 00-000, 0000-000 or 000 00). Docudis 2026-09-17: the original \"2-5 digits + 2-4 digits + any word\" form marked invoice numbers, order numbers and quantities (\"482913 for\", \"350000 units\", \"125000 unites\") as addresses in English and French text. Four-digit-only codes (AT, CH, BE, DK, NO) are left to their region packs, because a year followed by a word is too common in prose."
+    },
+    {
+      "id": "regex:universal:aws_access_key",
+      "entityType": "API_KEY",
+      "pattern": "\\b(?:AKIA|ASIA|ABIA|ACCA|AGPA|AIDA|AIPA|ANPA|ANVA|AROA)[0-9A-Z]{16}\\b",
+      "flags": "g",
+      "confidence": 0.95,
+      "domains": [
+        "technical"
+      ],
+      "classification": {
+        "category": "credential",
+        "subtype": "api_key",
+        "applicability": "baseline",
+        "verticals": [
+          "technology"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "AWS access key ID (AKIA/ASIA + 16 uppercase alphanumeric)",
+      "examples": [
+        "AKIAIOSFODNN7EXAMPLE",
+        "ASIAJEXAMPLEKEY12345"
+      ]
+    },
+    {
+      "id": "regex:universal:github_token",
+      "entityType": "API_KEY",
+      "pattern": "\\b(?:gh[pousr]_[A-Za-z0-9]{36,255}|github_pat_[A-Za-z0-9]{22}_[A-Za-z0-9]{59})\\b",
+      "flags": "g",
+      "confidence": 0.95,
+      "domains": [
+        "technical"
+      ],
+      "classification": {
+        "category": "credential",
+        "subtype": "api_key",
+        "applicability": "baseline",
+        "verticals": [
+          "technology"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "GitHub token (classic ghp_/gho_/ghu_/ghs_/ghr_ or fine-grained github_pat_)",
+      "examples": [
+        "ghp_16C7e42F292c6912E7710c838347Ae178B4a",
+        "github_pat_11ABCDEFG0123456789abc_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456"
+      ]
+    },
+    {
+      "id": "regex:universal:slack_token",
+      "entityType": "API_KEY",
+      "pattern": "\\bxox[abprs]-[A-Za-z0-9-]{10,64}\\b",
+      "flags": "g",
+      "confidence": 0.95,
+      "domains": [
+        "technical"
+      ],
+      "classification": {
+        "category": "credential",
+        "subtype": "api_key",
+        "applicability": "baseline",
+        "verticals": [
+          "technology"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Slack token (xoxb- bot, xoxp- user, xoxa-/xoxr-/xoxs- variants)",
+      "examples": [
+        "xoxb-NotARealBotToken-DocCloakTestFixture",
+        "xoxp-FakeUserToken-DocCloakTestFixture00"
+      ]
+    },
+    {
+      "id": "regex:universal:openai_api_key",
+      "entityType": "API_KEY",
+      "pattern": "\\bsk-(?:(?:proj|svcacct|admin)-[A-Za-z0-9_-]{40,}|[A-Za-z0-9]{40,})\\b",
+      "flags": "g",
+      "confidence": 0.92,
+      "domains": [
+        "technical"
+      ],
+      "classification": {
+        "category": "credential",
+        "subtype": "api_key",
+        "applicability": "baseline",
+        "verticals": [
+          "technology"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "OpenAI API key (legacy sk- + 40+ alphanumeric, or sk-proj-/sk-svcacct-/sk-admin- project keys)",
+      "examples": [
+        "sk-proj-AbCdEfGhIjKlMnOpQrStUvWxYz0123456789AbCdEfGh",
+        "sk-AbCdEfGhIjKlMnOpQrStUvWxYz0123456789AbCdEfGhIjKl"
+      ],
+      "falsePositiveNotes": "Anthropic sk-ant- keys never reach the alphanumeric-only branch (hyphen after ant stops it); the dedicated anthropic rule wins overlap resolution via its longer prefix"
+    },
+    {
+      "id": "regex:universal:anthropic_api_key",
+      "entityType": "API_KEY",
+      "pattern": "\\bsk-ant-[A-Za-z0-9_-]{24,}\\b",
+      "flags": "g",
+      "confidence": 0.95,
+      "domains": [
+        "technical"
+      ],
+      "classification": {
+        "category": "credential",
+        "subtype": "api_key",
+        "applicability": "baseline",
+        "verticals": [
+          "technology"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Anthropic API key (sk-ant- prefix)",
+      "examples": [
+        "sk-ant-api03-AbCdEfGhIjKlMnOpQrStUvWxYz0123456789-AbCdEfGh"
+      ]
+    },
+    {
+      "id": "regex:universal:google_api_key",
+      "entityType": "API_KEY",
+      "pattern": "\\bAIza[0-9A-Za-z_-]{35}\\b",
+      "flags": "g",
+      "confidence": 0.95,
+      "domains": [
+        "technical"
+      ],
+      "classification": {
+        "category": "credential",
+        "subtype": "api_key",
+        "applicability": "baseline",
+        "verticals": [
+          "technology"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Google API key (AIza + 35 characters)",
+      "examples": [
+        "AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY"
+      ]
+    },
+    {
+      "id": "regex:universal:private_key_block",
+      "entityType": "SECRET",
+      "pattern": "-----BEGIN (?:[A-Z]+ )*PRIVATE KEY(?: BLOCK)?-----[\\s\\S]*?-----END (?:[A-Z]+ )*PRIVATE KEY(?: BLOCK)?-----",
+      "flags": "g",
+      "confidence": 0.99,
+      "domains": [
+        "technical"
+      ],
+      "classification": {
+        "category": "credential",
+        "subtype": "private_key",
+        "applicability": "baseline",
+        "verticals": [
+          "technology"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "PEM private key block (RSA/EC/DSA/OPENSSH/ENCRYPTED/PGP), including SSH private keys",
+      "examples": [
+        "-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA0Z3VS5JJcds3xfn\n-----END RSA PRIVATE KEY-----",
+        "-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmU\n-----END OPENSSH PRIVATE KEY-----"
+      ]
+    },
+    {
+      "id": "regex:universal:jwt",
+      "entityType": "SECRET",
+      "pattern": "\\beyJ[A-Za-z0-9_-]{8,}\\.[A-Za-z0-9_-]{8,}\\.[A-Za-z0-9_-]{8,}\\b",
+      "flags": "g",
+      "confidence": 0.95,
+      "domains": [
+        "technical"
+      ],
+      "classification": {
+        "category": "credential",
+        "subtype": "authentication_token",
+        "applicability": "baseline",
+        "verticals": [
+          "technology"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "JSON Web Token (three base64url segments, header starts with eyJ = base64 of '{\")",
+      "examples": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U"
+      ]
+    },
+    {
+      "id": "regex:universal:connection_string_creds",
+      "entityType": "SECRET",
+      "pattern": "\\b[a-zA-Z][a-zA-Z0-9+.-]{1,30}:\\/\\/[^\\s:@\\/]{1,64}:[^\\s@]{1,128}@[^\\s\"']{1,256}",
+      "flags": "g",
+      "confidence": 0.9,
+      "domains": [
+        "technical"
+      ],
+      "classification": {
+        "category": "credential",
+        "subtype": "connection_credentials",
+        "applicability": "baseline",
+        "verticals": [
+          "technology"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Connection string with inline credentials (scheme://user:password@host)",
+      "examples": [
+        "postgres://admin:S3cr3tPass@db.example.com:5432/mydb",
+        "mongodb+srv://appuser:hunter2pass@cluster0.abc.mongodb.net/prod"
+      ],
+      "falsePositiveNotes": "Plain URLs without a user:password pair never match (the colon between user and password is required before the @)"
+    },
+    {
+      "id": "regex:universal:secret_assignment",
+      "entityType": "SECRET",
+      "pattern": "\\b[a-zA-Z0-9_-]{0,32}?(?:api[_-]?key|apikey|secret|token|passwd|password|credential|auth|access[_-]?key|client[_-]?secret|private[_-]?key|signing[_-]?key)[a-zA-Z0-9_-]{0,32}[\"']?\\s*[:=]>?\\s*[\"']?[A-Za-z0-9+\\/_=-]{16,}",
+      "flags": "gi",
+      "confidence": 0.75,
+      "domains": [
+        "technical"
+      ],
+      "classification": {
+        "category": "credential",
+        "subtype": "password_or_secret",
+        "applicability": "baseline",
+        "verticals": [
+          "technology"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Secret-ish keyword assignment (api_key = ..., password: ..., aws_secret_access_key: ...) with a 16+ char value; the value is Shannon-entropy gated by the secretAssignment validator",
+      "examples": [
+        "api_key = \"9fQz3kX7Lm2Pw8Rt5Vy1Jh6Nd4Bg0Cs\"",
+        "aws_secret_access_key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+        "session_token=a3f8c2d914b7e605d2c8a1f4b9e7d305"
+      ],
+      "falsePositiveNotes": "The keyword and separator are part of the match (lookbehind is banned for new rules), so the config key name is redacted along with the value. Low-entropy placeholder values (your_api_key_here, changeme) are rejected by the validator.",
+      "validate": "secretAssignment"
+    },
+    {
+      "id": "regex:universal:high_entropy_token",
+      "entityType": "SECRET",
+      "pattern": "\\b[A-Za-z0-9][A-Za-z0-9+\\/]{39,}={0,2}",
+      "flags": "g",
+      "confidence": 0.6,
+      "domains": [
+        "technical"
+      ],
+      "classification": {
+        "category": "credential",
+        "subtype": "secret_token",
+        "applicability": "baseline",
+        "verticals": [
+          "technology"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Bare high-entropy base64/alphanumeric token (40+ chars); the highEntropyToken validator requires mixed character classes and Shannon entropy >= 4.5 bits/char",
+      "examples": [
+        "Zq7PmX2vR9kLtY4wNb8QcJ3fHd6GsA1uEi5oT0xVrKp",
+        "kM3nP8qR2sT7uV1wX5yZ9aB4cD6eF0gH1jK2lM3nP4qR5sT6"
+      ],
+      "falsePositiveNotes": "Low confidence by design. Git SHAs and UUID fragments are single-case hex (rejected by the class-mix check); base64 data blobs exceed the 256 char cap; identifiers and prose fall below the entropy threshold.",
+      "validate": "highEntropyToken"
+    },
+    {
+      "id": "regex:universal:institution_en",
+      "entityType": "COMPANY",
+      "pattern": "\\b(?:\\p{Lu}[\\p{L}'’-]+\\s+){1,4}(?:Hospital|Infirmary|University|College|Institute|Clinic|Polytechnic|Academy)\\b",
+      "flags": "gu",
+      "confidence": 0.85,
+      "domains": [
+        "general"
+      ],
+      "classification": {
+        "category": "organization",
+        "subtype": "institution",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "English institution name ending in Hospital / University / Institute etc. (Docudis addition: the NER model tags \"Manchester Royal Infirmary\" as a location)",
+      "examples": [
+        "Manchester Royal Infirmary",
+        "Auckland University",
+        "Massachusetts Institute"
+      ]
+    },
+    {
+      "id": "regex:universal:url",
+      "entityType": "URL",
+      "pattern": "\\b(?:https?://|www\\.)[^\\s<>\"\\'()]+[^\\s<>\"\\'().,;:!?]|\\b(?:[a-z0-9-]+\\.)+[a-z]{2,}/[^\\s<>\"\\'()]*[^\\s<>\"\\'().,;:!?]",
+      "flags": "gi",
+      "confidence": 0.85,
+      "domains": [
+        "technical"
+      ],
+      "classification": {
+        "category": "digital",
+        "subtype": "url",
+        "applicability": "specialized",
+        "verticals": [
+          "technology"
+        ],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "Web address, with a scheme or \"www.\", or a bare domain followed by a path such as linkedin.com/in/name (Docudis addition; a bare domain without a path is left alone: it is usually a publication or file name)",
+      "examples": [
+        "https://example.com/profile?id=7",
+        "www.example.org",
+        "linkedin.com/in/thomas-gallagher"
+      ]
+    },
+    {
+      "id": "regex:universal:company_wrapped",
+      "entityType": "COMPANY",
+      "pattern": "(?<![\\p{L}\\d])(?:\\p{Lu}[\\p{L}\\d.'’&-]*)(?:[ \\u00A0\\n](?:(?:of|and|the|for|y|e|de|del|&)[ \\u00A0\\n])*(?:\\p{Lu}[\\p{L}\\d.'’&-]*|&)){1,7},?[ \\u00A0\\n](?:Ltd\\.?|LTD\\.?|Limited|LIMITED|PLC|plc|LLP|S\\.?L\\.?U?\\.?|S\\.?A\\.?U?\\.?|SARL|SAS)(?![\\p{L}\\d])",
+      "flags": "gu",
+      "confidence": 0.8,
+      "domains": [
+        "general"
+      ],
+      "classification": {
+        "category": "organization",
+        "subtype": "company",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "A firm whose name runs over a line break before its legal form, which is how a letterhead sets it: \"HARCASTLE JOINERY &\nSHOPFITTING LTD\", \"EMBUTIDOS Y SALAZONES\nARLANZÓN, S.L.\" (Docudis addition 2026-09-21). The per-region company rules only look within one line.",
+      "examples": [
+        "HARCASTLE JOINERY &\nSHOPFITTING LTD",
+        "EMBUTIDOS Y SALAZONES\nARLANZÓN, S.L."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,107 @@
+/* Copyright 2026 the Docudis contributors. Licensed under Apache-2.0. */
+
+#ifndef DOCUDIS_H
+#define DOCUDIS_H
+
+#include <stddef.h>
+#include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#if defined(_WIN32)
+#  if defined(DOCUDIS_BUILD_SHARED)
+#    define DOCUDIS_API __declspec(dllexport)
+#  else
+#    define DOCUDIS_API
+#  endif
+#else
+#  define DOCUDIS_API __attribute__((visibility("default")))
+#endif
+
+#define DOCUDIS_V1_ABI_VERSION 1u
+
+typedef enum DocudisV1Status {
+  DOCUDIS_V1_OK = 0,
+  DOCUDIS_V1_INVALID_ARGUMENT = 1,
+  DOCUDIS_V1_INVALID_UTF8 = 2,
+  DOCUDIS_V1_INVALID_JSON = 3,
+  DOCUDIS_V1_CORE_ERROR = 4,
+  DOCUDIS_V1_PANIC = 255
+} DocudisV1Status;
+
+/* Owned output bytes. Treat fields as read-only and release with
+ * docudis_v1_buffer_free on the same Docudis library that allocated them. */
+typedef struct DocudisV1Buffer {
+  uint8_t *ptr;
+  size_t len;
+  size_t capacity;
+} DocudisV1Buffer;
+
+DOCUDIS_API uint32_t docudis_v1_abi_version(void);
+
+/* Static UTF-8/NUL-terminated library version. Never free this pointer. */
+DOCUDIS_API const char *docudis_v1_version(void);
+
+/*
+ * Input and output are UTF-8 JSON using schema_version 1. Detection start/end
+ * fields and response replacement start/end fields are half-open UTF-8 byte
+ * offsets. On success, `out` owns a UTF-8 JSON buffer (not NUL-terminated).
+ *
+ * Input schema:
+ *   {"schema_version":1,"text":"...","detections":[...],
+ *    "previous_map":[{"original":"...","placeholder":"[PERSON_1]",
+ *                     "type":"PERSON"}]}
+ *
+ * The caller retains ownership of `input`. The caller must initialize and
+ * pass a writable `out`; on failure it is reset to an empty buffer.
+ */
+DOCUDIS_API DocudisV1Status docudis_v1_anonymize_json(
+    const uint8_t *input,
+    size_t input_len,
+    DocudisV1Buffer *out);
+
+/* Runs bundled regex rules and optional dictionary/list matching, then merges
+ * caller-provided detections (including Dart-produced NER spans). `regions`
+ * contains lower-case pack names. All offsets are UTF-8 bytes.
+ *
+ * Input schema:
+ *   {"schema_version":1,"text":"...","regions":["fr"],
+ *    "dictionary":["..."],"never_hide":["..."],
+ *    "include_bundled_lists":false,"detections":[...]}
+ * Output: {"schema_version":1,"detections":[...]}
+ */
+DOCUDIS_API DocudisV1Status docudis_v1_detect_json(
+    const uint8_t *input,
+    size_t input_len,
+    DocudisV1Buffer *out);
+
+/* Same request as docudis_v1_detect_json, with optional `previous_map`.
+ * Returns the schema-v1 anonymization response plus the final merged
+ * `detections` array, so a host can differentially compare the pipeline. */
+DOCUDIS_API DocudisV1Status docudis_v1_process_json(
+    const uint8_t *input,
+    size_t input_len,
+    DocudisV1Buffer *out);
+
+/* Input: {"schema_version":1,"text":"[PERSON_1]", "mappings":[...]}
+ * Output: {"schema_version":1,"text":"Alice"} */
+DOCUDIS_API DocudisV1Status docudis_v1_restore_json(
+    const uint8_t *input,
+    size_t input_len,
+    DocudisV1Buffer *out);
+
+/* Releases a successful output buffer and zeroes it. NULL is accepted. */
+DOCUDIS_API void docudis_v1_buffer_free(DocudisV1Buffer *buffer);
+
+/* Thread-local, static, NUL-terminated detail for the most recent failure on
+ * the current thread. Valid until the next C API call on that thread. Never
+ * free this pointer. The empty string means there is no current error. */
+DOCUDIS_API const char *docudis_v1_last_error_message(void);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* DOCUDIS_H */

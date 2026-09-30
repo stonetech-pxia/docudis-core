@@ -1,0 +1,479 @@
+{
+  "schemaVersion": 2,
+  "region": "fr",
+  "scope": {
+    "jurisdictions": [
+      "FR"
+    ],
+    "languages": [
+      "fr"
+    ]
+  },
+  "rules": [
+    {
+      "id": "regex:fr:nir",
+      "entityType": "SSN",
+      "pattern": "\\b[12]\\s?\\d{2}\\s?\\d{2}\\s?\\d{2}\\s?\\d{3}\\s?\\d{3}(?:\\s?\\d{2})?\\b",
+      "flags": "g",
+      "confidence": 0.9,
+      "domains": [
+        "identity",
+        "medical",
+        "hr"
+      ],
+      "classification": {
+        "category": "identity",
+        "subtype": "social_security_number",
+        "applicability": "baseline",
+        "verticals": [
+          "healthcare",
+          "employment"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "French NIR / INSEE number (numéro de sécurité sociale, 13+2 digits)",
+      "examples": [
+        "1 85 05 78 049 013 36"
+      ],
+      "validate": "nir"
+    },
+    {
+      "id": "regex:fr:passport",
+      "entityType": "SSN",
+      "pattern": "\\b\\d{2}[A-Z]{2}\\d{5}\\b",
+      "flags": "g",
+      "confidence": 0.75,
+      "domains": [
+        "identity"
+      ],
+      "classification": {
+        "category": "identity",
+        "subtype": "passport",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "French passport number (2 digits + 2 letters + 5 digits)",
+      "examples": [
+        "12AB34567"
+      ]
+    },
+    {
+      "id": "regex:fr:cni",
+      "entityType": "SSN",
+      "pattern": "\\b\\d{12}\\b",
+      "flags": "g",
+      "confidence": 0.4,
+      "domains": [
+        "identity"
+      ],
+      "classification": {
+        "category": "identity",
+        "subtype": "national_id",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "French national ID card number (12 digits, new format)",
+      "examples": [
+        "123456789012"
+      ],
+      "falsePositiveNotes": "Very broad — 12 digits matches many things"
+    },
+    {
+      "id": "regex:fr:siret",
+      "entityType": "SSN",
+      "pattern": "\\b\\d{3}\\s?\\d{3}\\s?\\d{3}(?:\\s?\\d{5})?\\b",
+      "flags": "g",
+      "confidence": 0.65,
+      "domains": [
+        "financial",
+        "legal"
+      ],
+      "classification": {
+        "category": "businessRecord",
+        "subtype": "business_registration",
+        "applicability": "specialized",
+        "verticals": [
+          "finance",
+          "legal"
+        ],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "French SIRET (14 digits) or SIREN (9 digits) business number",
+      "examples": [
+        "362 521 879 00034",
+        "362 521 879"
+      ],
+      "falsePositiveNotes": "9-digit SIREN overlaps with many formats"
+    },
+    {
+      "id": "regex:fr:vat",
+      "entityType": "SSN",
+      "pattern": "\\b(?:FR)?\\d{2}\\s?\\d{9}\\b",
+      "flags": "gi",
+      "confidence": 0.75,
+      "domains": [
+        "financial",
+        "legal"
+      ],
+      "classification": {
+        "category": "businessRecord",
+        "subtype": "business_tax_id",
+        "applicability": "specialized",
+        "verticals": [
+          "finance",
+          "legal"
+        ],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "French VAT number (FR + 2 digits + 9 digits SIREN)",
+      "examples": [
+        "FR12 362521879",
+        "FR 12362521879"
+      ]
+    },
+    {
+      "id": "regex:fr:phone",
+      "entityType": "PHONE",
+      "pattern": "(?<!\\d[.-]?)\\b0[1-9](?:(?:(?:[ \\u00A0]|[ \\u00A0]?\\r?\\n)\\d{2}){4}|([.-]?)\\d{2}(?:\\1\\d{2}){3})\\b(?![.-]?\\d)",
+      "flags": "g",
+      "confidence": 0.85,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "contact",
+        "subtype": "phone",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "French phone number (0X XX XX XX XX) (Docudis change 2026-09-18: pairs may be separated by a dot or a hyphen, \"01.23.45.67.89\" was an IP address followed by \".89\"; the same separator throughout, so the date and hour \"01.02.2024 12:30\" is not a phone. 2026-09-19: a number written with spaces may wrap onto the next line, as OCR and PDF text give it; dotted, hyphenated and unspaced numbers still stay on one line)",
+      "examples": [
+        "01 23 45 67 89",
+        "06 12 34 56 78",
+        "0612345678",
+        "01.23.45.67.89",
+        "06-12-34-56-78"
+      ]
+    },
+    {
+      "id": "regex:fr:postal",
+      "entityType": "ADDRESS",
+      "pattern": "(?<!\\d{3}[ \\u00A0]\\d{3}[ \\u00A0])\\b\\d{5}[ \\u00A0]\\p{Lu}[\\p{L}'’-]*(?:[ \\u00A0-](?:(?:sur|sous|de|du|des|la|le|les|en|lès|aux|del|los|las)[ \\u00A0-])*\\p{Lu}[\\p{L}'’-]*)*(?:[ \\u00A0]\\d{1,2}(?:er|e|ème)[ \\u00A0]Arrondissement)?(?![\\p{L}])",
+      "flags": "gu",
+      "confidence": 0.8,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "location",
+        "subtype": "postal_code",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "French postal code (5 digits) followed by city name (Docudis change 2026-09-18: exactly one space, a capitalised city and no SIREN-like pair of digit groups before the code: the tail of a SIRET followed by a table heading is not a postcode)",
+      "examples": [
+        "75001 Paris",
+        "13100 Aix-en-Provence",
+        "97600 MAMOUDZOU",
+        "13007 Marseille 7e Arrondissement"
+      ]
+    },
+    {
+      "id": "regex:fr:currency_words",
+      "entityType": "CURRENCY",
+      "pattern": "(?:(?:soit|montant)\\s+(?:en\\s+)?(?:lettres?|toutes?\\s+lettres?)\\s*:\\s*|(?:la\\s+)?somme\\s+de\\s+)[\\p{L} \\t\\u00A0'-]+(?:euros?|centimes?)\\b",
+      "flags": "giu",
+      "confidence": 0.9,
+      "domains": [
+        "financial"
+      ],
+      "classification": {
+        "category": "financialValue",
+        "subtype": "amount",
+        "applicability": "specialized",
+        "verticals": [
+          "finance"
+        ],
+        "protectionLevel": "optional",
+        "defaultAction": "detectOnly",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "French amount written in words (e.g., \"soit en lettres: huit mille cinq cents euros\") (Docudis change: no line break inside the name)",
+      "examples": [
+        "soit en lettres: huit mille cinq cents euros"
+      ]
+    },
+    {
+      "id": "regex:fr:street",
+      "entityType": "ADDRESS",
+      "pattern": "\\b\\d{1,5}(?:[ \\u00A0]?(?:bis|ter|[a-z])\\b)?\\s*,?\\s*(?:rue|avenue|av\\.|boulevard|bd\\.?|place|pl\\.|impasse|allée|passage|chemin|route|quai|cours|square|voie|sentier|résidence)\\s+[\\p{L}][\\p{L} \\t\\u00A0'-]+",
+      "flags": "giu",
+      "confidence": 0.9,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "location",
+        "subtype": "street_address",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "French street address (number + rue/avenue/boulevard + name) (Docudis change 2026-09-18: house numbers with a letter, \"7b Rue de Fruges\", \"3 B Rue du Commerce\")",
+      "examples": [
+        "12 rue de Rivoli",
+        "42 avenue des Champs-Élysées",
+        "8 bis boulevard Haussmann",
+        "7b Rue de Fruges",
+        "3 B Rue du Commerce"
+      ]
+    },
+    {
+      "id": "regex:fr:company",
+      "entityType": "COMPANY",
+      "pattern": "(?<![\\p{L}\\d])(?:\\p{Lu}[\\p{L}\\d.'’&-]*|\\d+[\\p{L}\\d]*)(?:[ \\u00A0](?:(?:de|du|des|la|le|les|et|en|à|aux|&)[ \\u00A0])*(?:\\p{Lu}[\\p{L}\\d.'’&-]*|\\d+[\\p{L}\\d]*)){0,7},?[ \\u00A0](?:SARL|S\\.A\\.R\\.L\\.|SASU|SAS|S\\.A\\.S\\.|SA|S\\.A\\.|EURL|SCI|SNC|SELARL|SCP|GIE)(?![\\p{L}\\d])(?![ \\u00A0]?:)",
+      "flags": "gu",
+      "confidence": 0.9,
+      "domains": [
+        "legal",
+        "financial"
+      ],
+      "classification": {
+        "category": "organization",
+        "subtype": "company",
+        "applicability": "baseline",
+        "verticals": [
+          "legal",
+          "finance"
+        ],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "French company name with legal form (SARL, SAS, SA, EURL, SCI, SNC) (Docudis change 2026-09-18: the name must be a run of capitalised words, so the sentence before the company is no longer swallowed; a form label followed by a colon is not a company)",
+      "examples": [
+        "Total SA",
+        "Capgemini SAS",
+        "Dupont et Fils SARL"
+      ]
+    },
+    {
+      "id": "regex:fr:company_prefix",
+      "entityType": "COMPANY",
+      "pattern": "(?<![\\p{L}\\d])(?:SARL|Sarl|SASU|SAS|Sas|EURL|SCI|SNC|SELARL|Selarl|SCP)[ \\u00A0]\\p{Lu}[\\p{L}\\d.'’&-]*(?:[ \\u00A0](?:(?:de|du|des|la|le|les|et|en|&)[ \\u00A0])*\\p{Lu}[\\p{L}\\d.'’&-]*){0,5}",
+      "flags": "gu",
+      "confidence": 0.85,
+      "domains": [
+        "legal"
+      ],
+      "classification": {
+        "category": "organization",
+        "subtype": "company",
+        "applicability": "baseline",
+        "verticals": [
+          "legal"
+        ],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "French company written with its legal form first, \"SAS BLENET-CHUL\", \"Selarl Amandine Riquelme\" (Docudis addition)",
+      "examples": [
+        "SAS BLENET-CHUL",
+        "SCI STONE",
+        "Selarl Amandine Riquelme"
+      ]
+    },
+    {
+      "id": "regex:fr:labeled_company",
+      "entityType": "COMPANY",
+      "pattern": "(?<=(?:Dénomination|Raison sociale|Nom commercial|Enseigne|Sigle|Employeur)[ \\u00A0]?:[ \\u00A0]?)\\p{Lu}[^\\n,;:]{1,79}?(?=[ \\u00A0]*(?:[,;\\n]|$))",
+      "flags": "gmu",
+      "confidence": 0.8,
+      "domains": [
+        "legal"
+      ],
+      "classification": {
+        "category": "organization",
+        "subtype": "company",
+        "applicability": "baseline",
+        "verticals": [
+          "legal"
+        ],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "Company name after a form label such as \"Dénomination :\" or \"Employeur :\" (Docudis addition). The value must start with a capital, so \"à compléter\" is not a name.",
+      "examples": [
+        "Sigle : MECADISTRIB",
+        "Employeur : Menuiserie Berthelot"
+      ]
+    },
+    {
+      "id": "regex:fr:company_head",
+      "entityType": "COMPANY",
+      "pattern": "(?<![\\p{L}])(?:Cabinet|Mutuelle|Clinique|Agence|Banque|Pharmacie|Garage|Boulangerie|Restaurant|Hôtel|Étude|Groupe|Établissements|Ets|Transports|Menuiserie|Atelier|Maison de santé|Maison|Hôpital|Hopital|Centre hospitalier|Laboratoire|Lycée|Collège|Université|CABINET|MUTUELLE|CLINIQUE|AGENCE|BANQUE|PHARMACIE|GARAGE|BOULANGERIE|RESTAURANT|HOTEL|HÔTEL|GROUPE|HÔPITAL|LABORATOIRE)(?:[ \\u00A0](?:(?:de|du|des|la|le|les|et|en|&|d'|l')[ \\u00A0]?)*(?:\\p{Lu}[\\p{L}\\d.'’&-]*|\\d+[\\p{L}\\d]*|santé)){1,5}",
+      "flags": "gu",
+      "confidence": 0.8,
+      "domains": [
+        "general"
+      ],
+      "classification": {
+        "category": "organization",
+        "subtype": "company",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "French business name that starts with a trade noun, \"Cabinet Vasseur & Associés\", \"RESTAURANT LE MARTINET\" (Docudis addition). At least one capitalised word must follow, so \"la clinique\" in prose is not a name. (Docudis change 2026-09-21: added hospitals, labs and schools, and \"Maison de santé\", whose second word is lower case and so could never match the capitalised continuation, and a number may finish the name (\"Université Lumière Lyon 2\"), which the per-region company rules already allowed and this one did not.)",
+      "examples": [
+        "Cabinet Vasseur & Associés",
+        "Mutuelle Horizon Santé",
+        "RESTAURANT LE MARTINET"
+      ]
+    },
+    {
+      "id": "regex:fr:rcs",
+      "entityType": "SSN",
+      "pattern": "\\bRCS[ \\u00A0]\\p{L}[\\p{L} '’-]{1,40}?[ \\u00A0](?:[AB][ \\u00A0])?\\d{3}[ \\u00A0]?\\d{3}[ \\u00A0]?\\d{3}\\b",
+      "flags": "gu",
+      "confidence": 0.9,
+      "domains": [
+        "legal"
+      ],
+      "classification": {
+        "category": "businessRecord",
+        "subtype": "business_registration",
+        "applicability": "specialized",
+        "verticals": [
+          "legal"
+        ],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "French trade-register reference: \"RCS\" + registry town + SIREN (Docudis addition)",
+      "examples": [
+        "RCS Reims 838 805 653",
+        "RCS le Puy en Velay 912 345 678"
+      ]
+    },
+    {
+      "id": "regex:fr:court",
+      "entityType": "COMPANY",
+      "pattern": "\\b(?:Greffe du )?Tribunal (?:de Commerce|Judiciaire|des Activités [EÉ]conomiques|Mixte de Commerce|de Grande Instance|d'Instance|Administratif)(?: de | d'| du | des | de la )\\p{Lu}[\\p{L}'’-]*(?:[ \\u00A0-](?:(?:sur|sous|de|du|des|la|le|les|en|lès|aux|del|los|las)[ \\u00A0-])*\\p{Lu}[\\p{L}'’-]*)*",
+      "flags": "gu",
+      "confidence": 0.8,
+      "domains": [
+        "legal"
+      ],
+      "classification": {
+        "category": "legalRecord",
+        "subtype": "court",
+        "applicability": "specialized",
+        "verticals": [
+          "legal"
+        ],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "French court with its town, \"Greffe du Tribunal de Commerce de Reims\": the town locates the case (Docudis addition)",
+      "examples": [
+        "Tribunal de Commerce de Reims",
+        "Greffe du Tribunal des Activités Economiques de Saint-Brieuc"
+      ]
+    },
+    {
+      "id": "regex:fr:carte_vitale",
+      "entityType": "OTHER",
+      "pattern": "\\b\\d{1}\\s?\\d{2}\\s?\\d{2}\\s?\\d{3}\\s?\\d{3}\\b",
+      "flags": "g",
+      "confidence": 0.7,
+      "domains": [
+        "medical"
+      ],
+      "classification": {
+        "category": "medicalRecord",
+        "subtype": "health_card_number",
+        "applicability": "specialized",
+        "verticals": [
+          "healthcare"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "French Carte Vitale number (same as NIR, 13 digits)",
+      "examples": [
+        "1 85 05 780 490"
+      ],
+      "falsePositiveNotes": "Duplicate of NIR — overlap resolution will keep one"
+    },
+    {
+      "id": "regex:fr:date_words",
+      "entityType": "DATE",
+      "pattern": "\\b(?:1er|\\d{1,2})\\s+(?:janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|décembre|decembre)\\s+\\d{4}\\b",
+      "flags": "gi",
+      "confidence": 0.85,
+      "domains": [
+        "general"
+      ],
+      "classification": {
+        "category": "temporal",
+        "subtype": "date_words",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "optional",
+        "defaultAction": "contextual",
+        "provenance": "docudis",
+        "status": "active"
+      },
+      "description": "French date with a month name, including \"1er\" (Docudis addition)",
+      "examples": [
+        "1er septembre 2015",
+        "3 avril 1987",
+        "25 Décembre 2024"
+      ]
+    }
+  ]
+}

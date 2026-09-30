@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 2,
+  "region": "be",
+  "scope": {
+    "jurisdictions": [
+      "BE"
+    ],
+    "languages": [
+      "nl",
+      "fr",
+      "de"
+    ]
+  },
+  "rules": [
+    {
+      "id": "regex:be:national_register",
+      "entityType": "SSN",
+      "pattern": "\\b\\d{2}[.\\s]?\\d{2}[.\\s]?\\d{2}[-.\\s]?\\d{3}[.\\s]?\\d{2}\\b",
+      "flags": "g",
+      "confidence": 0.9,
+      "domains": [
+        "identity",
+        "hr"
+      ],
+      "classification": {
+        "category": "identity",
+        "subtype": "social_security_number",
+        "applicability": "baseline",
+        "verticals": [
+          "employment"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Belgian National Register Number (Rijksregisternummer / Numéro de registre national)",
+      "examples": [
+        "85.07.15-123.97",
+        "85071512397"
+      ],
+      "validate": "belgianNrn"
+    },
+    {
+      "id": "regex:be:phone",
+      "entityType": "PHONE",
+      "pattern": "\\b(?:\\+?32[\\s-]?|0)(?:4\\d{2}[\\s-]?\\d{2}[\\s-]?\\d{2}[\\s-]?\\d{2}|[1-9]\\d?[\\s-]?\\d{3}[\\s-]?\\d{2}[\\s-]?\\d{2})\\b",
+      "flags": "g",
+      "confidence": 0.8,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "contact",
+        "subtype": "phone",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Belgian phone number (mobile 04xx or landline)",
+      "examples": [
+        "+32 475 12 34 56",
+        "02 123 45 67"
+      ]
+    },
+    {
+      "id": "regex:be:postal",
+      "entityType": "ADDRESS",
+      "pattern": "(?<=^|[,:][ \\u00A0]|[-–][ \\u00A0])[1-9]\\d{3}[ \\u00A0]\\p{Lu}[\\p{L}'’-]*(?:[ \\u00A0-](?:(?:sur|sous|de|du|des|la|le|les|en|lès|aux|del|los|las)[ \\u00A0-])*\\p{Lu}[\\p{L}'’-]*)*(?![\\p{L}])",
+      "flags": "gmu",
+      "confidence": 0.75,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "location",
+        "subtype": "postal_code",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Belgian postal code (4 digits, 1000-9999) followed by a capitalised city name (Docudis change 2026-09-18: four digits plus a capitalised word is also \"2025 Échéance\" or \"3500 Pièces\": the code must now start a line or follow a comma or dash, one space, a capitalised city; confidence below 0.8 so a date always wins)",
+      "examples": [
+        "1000 Bruxelles",
+        "2000 Antwerpen",
+        "9000 Gent"
+      ],
+      "falsePositiveNotes": "4-digit numbers are common; the capitalised city keeps years followed by prose out"
+    },
+    {
+      "id": "regex:be:street",
+      "entityType": "ADDRESS",
+      "pattern": "(?<![\\p{L}])(?:straat|laan|weg|plein|steenweg|lei|dreef|boulevard|avenue|rue|place|chaussée)[\\p{L} \\t\\u00A0'-]+\\d{1,4}(?!\\d)[\\p{L}]?|[\\p{L}][\\p{L} \\t\\u00A0'-]*(?:straat|laan|weg|plein|steenweg|lei|dreef)\\s+\\d{1,4}(?!\\d)[\\p{L}]?",
+      "flags": "giu",
+      "confidence": 0.85,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "location",
+        "subtype": "street_address",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Belgian street address (Dutch/French street types + number) (Docudis change: no line break inside the name) (Docudis change 2026-09-18: house numbers have at most four digits, so a French five-digit postcode after the street is not a house number; the street word must start a word, \"Déplacement 1\" is not \"place ment 1\")",
+      "examples": [
+        "Kerkstraat 12",
+        "Avenue Louise 54",
+        "Rue de la Loi 16"
+      ]
+    }
+  ]
+}

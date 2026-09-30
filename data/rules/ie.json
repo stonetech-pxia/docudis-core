@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 2,
+  "region": "ie",
+  "scope": {
+    "jurisdictions": [
+      "IE"
+    ],
+    "languages": [
+      "en",
+      "ga"
+    ]
+  },
+  "rules": [
+    {
+      "id": "regex:ie:pps-number",
+      "entityType": "SSN",
+      "pattern": "\\b\\d{7}[A-W][ABWTXZ]?\\b",
+      "flags": "gi",
+      "confidence": 0.9,
+      "domains": [
+        "identity",
+        "hr"
+      ],
+      "classification": {
+        "category": "identity",
+        "subtype": "social_security_number",
+        "applicability": "baseline",
+        "verticals": [
+          "employment"
+        ],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloak",
+        "status": "active"
+      },
+      "description": "Irish PPS (Personal Public Service) number",
+      "examples": [
+        "1234567T",
+        "1234567TW"
+      ],
+      "validate": "pps"
+    },
+    {
+      "id": "regex:ie:phone",
+      "entityType": "PHONE",
+      "pattern": "\\b(?:\\+?353[\\s-]?|0)[1-9]\\d?[\\s-]?\\d{3}[\\s-]?\\d{3,4}\\b",
+      "flags": "g",
+      "confidence": 0.75,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "contact",
+        "subtype": "phone",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "essential",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Irish phone number (Docudis change: confidence 0.8 -> 0.75. The pack loads for every English text and the national form is any 8 to 10 digits starting with 0, which is also a UK company number such as 09583892; as a loose rule a bare-digit match is reported as NUMBER)"
+    },
+    {
+      "id": "regex:ie:eircode",
+      "entityType": "ADDRESS",
+      "pattern": "\\b(?:[AC-FHKNPRTV-Y]\\d{2}|D6W)[ \\u00A0]?(?=[0-9AC-FHKNPRTV-Y]{0,3}[AC-FHKNPRTV-Y])[0-9AC-FHKNPRTV-Y]{4}\\b",
+      "flags": "g",
+      "confidence": 0.8,
+      "domains": [
+        "contact"
+      ],
+      "classification": {
+        "category": "location",
+        "subtype": "postal_code",
+        "applicability": "baseline",
+        "verticals": [],
+        "protectionLevel": "recommended",
+        "defaultAction": "hide",
+        "provenance": "doccloakModified",
+        "status": "active"
+      },
+      "description": "Irish Eircode postal code (Docudis change 2026-09-18: the pack loads for every English text and \"letter, two digits, any four characters\" with the i flag was also \"B12 with\", \"M25 near\", \"G20 will\" and order number P604512. Now capitals only, the Eircode alphabet (no B, G, I, J, L, M, O, Q, S, U, Z) and at least one letter in the last four characters)",
+      "examples": [
+        "A65 F4E2",
+        "D08YX4T"
+      ]
+    }
+  ]
+}
