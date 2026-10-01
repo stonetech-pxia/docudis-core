@@ -15,17 +15,17 @@ in each crate's `NOTICE` and in
 ## Workspace
 
 - `docudis-core`: platform-independent rules, validators, lists, dictionaries,
-  overlap resolution, never-hide, repair, propagation, NER window/BIO
-  algorithms, offset conversion, anonymization, and restoration. It contains
-  no Flutter, PDF, OCR, ONNX Runtime, or other inference-runtime dependency.
+  overlap resolution, never-hide, repair, propagation, offset conversion,
+  anonymization, and restoration. It contains no Flutter, PDF, OCR, ONNX
+  Runtime, tokenizer, or other model dependency.
 - `docudis-capi`: small versioned C ABI built as both `cdylib` and `staticlib`.
 - `docudis-cli`: text/stdin interface over the same Rust core.
 - `../conformance`: one language-neutral fixture suite consumed by Rust and
   Dart tests.
 
 The `Detector` trait in `docudis-core` is the future adapter seam. Rule and
-dictionary detection can remain pure; ONNX-backed detection belongs in a
-separate `docudis-ort` crate that implements or drives this boundary. OCR,
+dictionary detection can remain pure; model-backed detection lives in the
+separate `docudis-ner` repository, which implements or drives this boundary. OCR,
 file selection, sharing, and platform UI remain outside the core. PDF/DOCX
 processing will live in `docudis-documents` and consume core replacements.
 
@@ -124,8 +124,8 @@ Example request:
 
 ## Deliberate boundary
 
-NER inference remains in Dart/Flutter. Rust accepts those detections and owns
-only inference-independent algorithms such as window construction,
-SentencePiece realignment, softmax selection, and BIO decoding. There is no
-`docudis-ort` crate and no ONNX Runtime dependency. OCR, PDF/DOCX processing,
-and platform UI remain unchanged.
+Core owns no model code. Tokenization, window construction, SentencePiece
+realignment, softmax selection, BIO decoding, and inference live in
+`docudis-ner`. Core only accepts the resulting detections, from one or more
+models, through the v1 `Detection` contract. OCR, PDF/DOCX processing, and
+platform UI remain outside Core.

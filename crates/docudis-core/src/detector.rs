@@ -5,8 +5,8 @@ use crate::Detection;
 /// Extension boundary for rule, dictionary, or model-backed detection.
 ///
 /// Pure core owns the `Detection` contract but not any concrete inference
-/// runtime. A future `docudis-ort` adapter can implement this trait without
-/// adding ONNX Runtime to `docudis-core`.
+/// runtime. Model adapters in `docudis-ner` can implement this trait without
+/// adding a model dependency to `docudis-core`.
 pub trait Detector {
     type Error;
 

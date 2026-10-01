@@ -2,22 +2,28 @@
 
 Platform-independent detection, anonymization, restoration, and stable C ABI
 for Docudis. This repository intentionally has no dependency on Flutter,
-Android application code, OCR, PDF processing, ML Kit, or ONNX Runtime.
+Android application code, OCR, PDF processing, ML Kit, ONNX Runtime, or
+model tokenizers.
 
 ## Repository boundary
 
 - `crates/docudis-core`: rules, lists, dictionaries, pipeline/repair, offsets,
-  tokenizer alignment, BIO decoding, anonymization, and restoration.
+  anonymization, and restoration.
 - `crates/docudis-capi`: versioned `docudis_v1_*` C ABI and public header.
 - `crates/docudis-cli`: command-line adapter.
 - `bindings/dart`: Dart FFI adapter with ABI validation and safe buffer ownership.
 - `data`: authoritative rule packs and bundled lists.
 - `conformance`: shared v1 fixtures (445 rule and 29 pipeline cases).
-- `testdata/tokenizers`: tokenizer-only fixtures used without an inference runtime.
 
 The Android application consumes versioned Core artifacts. It must not copy or
 independently edit `data/rules`; generated Dart snapshots are verified against a
 specific Core revision and content digest.
+
+Model-specific code (tokenizers, windowing, BIO decoding, inference) lives in
+the separate `docudis-ner` repository, which depends on Core and never the
+other way round. Core accepts detections from any number of models through the
+`detections` field of the v1 JSON requests (`source: "model"`, with the model
+identified by `detector`) and merges them with rule and list detections.
 
 ## Local verification
 

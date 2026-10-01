@@ -14,7 +14,6 @@ mod detection;
 mod detector;
 mod entity_type;
 mod list_detectors;
-mod ner;
 mod offsets;
 mod pipeline;
 mod placeholder_map;
@@ -27,11 +26,6 @@ pub use detection::{Detection, DetectionSource};
 pub use detector::Detector;
 pub use entity_type::EntityType;
 pub use list_detectors::{BundledListDetector, DictionaryDetector};
-pub use ner::{
-    build_windows, decode_bio, merge_window_predictions, prediction_from_logits,
-    realign_sentencepiece, sentencepiece_word_ids, title_cased, HuggingFaceNerTokenizer,
-    NerDecodeConfig, NerEncoding, NerTokenizer, NerWindow, TokenPrediction, TokenizerKind,
-};
 pub use offsets::{utf16_to_utf8_offset, utf8_to_utf16_offset, OffsetError};
 pub use pipeline::{
     follows_birth_label, merge, propagate, repair_spans, resolve_overlaps, with_defaults,
