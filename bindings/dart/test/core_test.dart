@@ -133,6 +133,18 @@ void main() {
     }
   }, skip: skip);
 
+  test('languages are identified when the library has them', () {
+    try {
+      final languages = core.languages('租客每月通过银行转账支付房租。');
+      expect(languages, ['zh']);
+      expect(core.regions(languages, '租客'), {'cn'});
+    } on DocudisException catch (e) {
+      expect(e.status, DocudisStatus.coreError);
+      expect(e.message, contains('language-id'));
+      markTestSkipped('library built without the language-id feature');
+    }
+  }, skip: skip);
+
   test('process, review edits, reapply and restore stay typed', () {
     const text = '😀 Alice Martin: alice@example.com. Alice Martin left.';
     final first = core.process(

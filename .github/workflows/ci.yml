@@ -23,6 +23,12 @@ jobs:
       - run: cargo test --workspace
       - run: cargo build --release --workspace
       - run: ./scripts/test-c-header.sh
+      - name: Language identification (desktop feature)
+        run: |
+          cargo clippy -p docudis-core -p docudis-capi --all-targets --features docudis-capi/language-id -- -D warnings
+          cargo test -p docudis-core -p docudis-capi --features docudis-capi/language-id
+          # The Dart checks below run against the library with the feature.
+          cargo build -p docudis-capi --features language-id
       - name: Dart FFI checks
         working-directory: bindings/dart
         run: |

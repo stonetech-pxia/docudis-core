@@ -69,5 +69,15 @@ int main(void) {
                                   &output) != DOCUDIS_V1_OK) return 18;
   if (output.ptr == NULL || output.len == 0) return 19;
   docudis_v1_buffer_free(&output);
+
+  /* Built without the language-id feature: a clean error, not a crash. */
+  const char languages[] = "{\"schema_version\":1,\"text\":\"Bonjour\"}";
+  DocudisV1Status status = docudis_v1_languages_json(
+      (const uint8_t *)languages, sizeof(languages) - 1, &output);
+  if (status == DOCUDIS_V1_OK) {
+    docudis_v1_buffer_free(&output);
+  } else if (status != DOCUDIS_V1_CORE_ERROR || output.ptr != NULL) {
+    return 20;
+  }
   return 0;
 }

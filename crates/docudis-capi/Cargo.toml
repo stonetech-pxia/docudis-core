@@ -9,6 +9,9 @@ repository.workspace = true
 [lib]
 crate-type = ["cdylib", "staticlib", "rlib"]
 
+[features]
+language-id = ["docudis-core/language-id"]
+
 [dependencies]
 docudis-core = { path = "../docudis-core" }
 serde.workspace = true

@@ -99,6 +99,15 @@ class DocudisCore {
     ];
   }
 
+  /// ISO 639-1 tags of the languages plausibly present in [text], most
+  /// likely first, for hosts without language identification of their own
+  /// (Windows). Needs a library built with the `language-id` feature.
+  List<String> languages(String text) => [
+    for (final l
+        in native.languages({'text': text})['languages']! as List<Object?>)
+      l! as String,
+  ];
+
   /// Rule-pack regions for [text] in these BCP-47 [languages].
   Set<String> regions(Iterable<String> languages, String text) {
     final response = native.regions({

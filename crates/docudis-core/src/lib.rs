@@ -14,6 +14,8 @@ mod chunker;
 mod detection;
 mod detector;
 mod entity_type;
+#[cfg(feature = "language-id")]
+mod language;
 mod list_detectors;
 mod offsets;
 mod pipeline;
@@ -28,6 +30,8 @@ pub use chunker::{chunk_text, TextChunk};
 pub use detection::{Detection, DetectionSource};
 pub use detector::Detector;
 pub use entity_type::EntityType;
+#[cfg(feature = "language-id")]
+pub use language::detect_languages;
 pub use list_detectors::{BundledListDetector, DictionaryDetector};
 pub use offsets::{utf16_to_utf8_offset, utf8_to_utf16_offset, OffsetError};
 pub use pipeline::{

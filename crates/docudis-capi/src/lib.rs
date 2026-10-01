@@ -159,6 +159,18 @@ struct RegionsResponse {
 }
 
 #[derive(Debug, Deserialize)]
+struct LanguagesRequest {
+    schema_version: u32,
+    text: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct LanguagesResponse {
+    schema_version: u32,
+    languages: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
 struct ReplyCheckRequest {
     schema_version: u32,
     reply: String,
@@ -593,6 +605,45 @@ pub unsafe extern "C" fn docudis_v1_regions_json(
 }
 
 #[no_mangle]
+/// Identifies the languages of a text, for hosts without language
+/// identification of their own. Fails with `CoreError` when the library was
+/// built without the `language-id` feature.
+///
+/// # Safety
+/// Same pointer and ownership contract as [`docudis_v1_anonymize_json`].
+pub unsafe extern "C" fn docudis_v1_languages_json(
+    input: *const u8,
+    input_len: usize,
+    out: *mut DocudisV1Buffer,
+) -> DocudisV1Status {
+    // SAFETY: forwarded unchanged to the common checked ABI boundary.
+    unsafe {
+        invoke_json(input, input_len, out, |input| {
+            let request: LanguagesRequest = parse_request(input)?;
+            validate_schema(request.schema_version)?;
+            response_json(&LanguagesResponse {
+                schema_version: 1,
+                languages: detect_languages(&request.text)?,
+            })
+        })
+    }
+}
+
+#[cfg(feature = "language-id")]
+fn detect_languages(text: &str) -> Result<Vec<String>, ApiFailure> {
+    Ok(docudis_core::detect_languages(text))
+}
+
+#[cfg(not(feature = "language-id"))]
+fn detect_languages(_: &str) -> Result<Vec<String>, ApiFailure> {
+    Err(ApiFailure(
+        DocudisV1Status::CoreError,
+        "this Docudis library was built without language identification (feature language-id)"
+            .to_owned(),
+    ))
+}
+
+#[no_mangle]
 /// Checks whether a pasted AI reply answers the given document.
 ///
 /// # Safety
@@ -803,6 +854,25 @@ mod tests {
             response,
             serde_json::json!({"schema_version":1,"regions":["cn","gb","ie","us"]})
         );
+    }
+
+    #[test]
+    fn languages_json_needs_the_feature() {
+        let (status, response) = call_json(
+            docudis_v1_languages_json,
+            serde_json::json!({"schema_version":1,"text":"Le locataire paie le loyer chaque mois."}),
+        );
+        if cfg!(feature = "language-id") {
+            assert_eq!(status, DocudisV1Status::Ok);
+            assert_eq!(
+                response,
+                serde_json::json!({"schema_version":1,"languages":["fr"]})
+            );
+        } else {
+            assert_eq!(status, DocudisV1Status::CoreError);
+            let message = unsafe { CStr::from_ptr(docudis_v1_last_error_message()) };
+            assert!(message.to_str().unwrap().contains("language-id"));
+        }
     }
 
     #[test]

@@ -14,6 +14,17 @@ repository = "https://github.com/stonetech-pxia/docudis-core"
 
 [workspace.dependencies]
 fancy-regex = "0.14"
+# Language identification for hosts without one of their own (Windows).
+# Only the languages Docudis has rule packs for, plus common languages that
+# would otherwise be mistaken for one of them.
+lingua = { version = "1.8", default-features = false, features = [
+    "chinese", "english", "french", "spanish", "german", "italian", "portuguese",
+    "dutch", "polish", "swedish", "bokmal", "nynorsk", "danish", "finnish",
+    "japanese", "hindi",
+    "russian", "ukrainian", "arabic", "korean", "turkish", "vietnamese",
+    "indonesian", "czech", "greek", "romanian", "hungarian", "hebrew", "thai",
+    "catalan",
+] }
 regex = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["float_roundtrip"] }

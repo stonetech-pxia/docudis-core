@@ -122,6 +122,18 @@ DOCUDIS_API DocudisV1Status docudis_v1_regions_json(
     size_t input_len,
     DocudisV1Buffer *out);
 
+/* ISO 639-1 tags of the languages plausibly present in `text`, most likely
+ * first, for hosts without language identification of their own. Fails
+ * with DOCUDIS_V1_CORE_ERROR when the library was built without the
+ * `language-id` feature.
+ *
+ * Input:  {"schema_version":1,"text":"..."}
+ * Output: {"schema_version":1,"languages":["fr"]} */
+DOCUDIS_API DocudisV1Status docudis_v1_languages_json(
+    const uint8_t *input,
+    size_t input_len,
+    DocudisV1Buffer *out);
+
 /* Checks whether a pasted AI reply answers document `id` among
  * `candidates` (each record's anonymized text and its placeholders).
  * `better_match` is null or the id of a document the reply fits clearly

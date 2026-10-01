@@ -70,6 +70,9 @@ class DocudisNative {
       _regions = library.lookupFunction<_CallNative, _CallDart>(
         'docudis_v1_regions_json',
       ),
+      _languages = library.lookupFunction<_CallNative, _CallDart>(
+        'docudis_v1_languages_json',
+      ),
       _replyCheck = library.lookupFunction<_CallNative, _CallDart>(
         'docudis_v1_reply_check_json',
       ),
@@ -107,6 +110,7 @@ class DocudisNative {
   final _CallDart _chunk;
   final _CallDart _merge;
   final _CallDart _regions;
+  final _CallDart _languages;
   final _CallDart _replyCheck;
   final _FreeDart _free;
   final _ErrorDart _lastError;
@@ -166,6 +170,12 @@ class DocudisNative {
   /// `{languages, text}` -> `{regions}`.
   Map<String, Object?> regions(Map<String, Object?> request) =>
       _call(_regions, {'schema_version': 1, ...request});
+
+  /// `{text}` -> `{languages}`. Throws a [DocudisException] with
+  /// [DocudisStatus.coreError] when the library was built without the
+  /// `language-id` feature.
+  Map<String, Object?> languages(Map<String, Object?> request) =>
+      _call(_languages, {'schema_version': 1, ...request});
 
   /// `{reply, id, candidates: [{id, text, placeholders}]}` ->
   /// `{unknown, invented, better_match}`.

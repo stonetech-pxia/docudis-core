@@ -90,7 +90,12 @@ The authoritative declaration is `docudis-capi/include/docudis.h`.
   while preserving ABI v1. `docudis_v1_chunk_json`, `docudis_v1_merge_json`,
   `docudis_v1_regions_json`, and `docudis_v1_reply_check_json` serve the review
   and restore screens: one-tap chunks, merge without detection, rule-pack
-  regions for detected languages, and the reply-to-document check. Complex
+  regions for detected languages, and the reply-to-document check.
+  `docudis_v1_languages_json` identifies a text's languages for hosts without
+  their own (Windows); it works only in a library built with the optional
+  `language-id` feature (lingua, 30 languages, ~150 MB of models) and otherwise
+  fails with `DOCUDIS_V1_CORE_ERROR`. Android builds leave the feature off and
+  keep ML Kit. Complex
   data is versioned with `schema_version: 1`; detection and replacement offsets
   are UTF-8 bytes.
 - Input memory remains owned by the caller. A successful output is allocated by
