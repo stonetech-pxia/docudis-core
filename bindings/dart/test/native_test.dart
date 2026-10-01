@@ -84,6 +84,46 @@ void main() {
   );
 
   test(
+    'caller confidences survive the C ABI bit for bit',
+    () {
+      // The differential runner compares JSON text, so a one-ULP drift in
+      // an NER confidence turned every NER case into a mismatch.
+      final rust = DocudisNative.open(path);
+      const confidences = [0.9998847145629489, 0.9970184195601827];
+      final request = <String, Object?>{
+        'schema_version': 1,
+        'text': 'Alice lives in Paris',
+        'regions': <String>[],
+        'detections': [
+          for (final (type, value, start, confidence) in [
+            ('PERSON', 'Alice', 0, confidences[0]),
+            ('ADDRESS', 'Paris', 15, confidences[1]),
+          ])
+            {
+              'type': type,
+              'value': value,
+              'start': start,
+              'end': start + 5,
+              'confidence': confidence,
+              'detector': 'ner',
+              'source': 'model',
+              'enabled': true,
+            },
+        ],
+      };
+      for (final response in [rust.detect(request), rust.process(request)]) {
+        expect([
+          for (final d in response['detections']! as List<Object?>)
+            (d! as Map)['confidence'],
+        ], confidences);
+      }
+    },
+    skip: path == null
+        ? 'Build docudis-capi first or set DOCUDIS_LIBRARY'
+        : false,
+  );
+
+  test(
     'differential fallback diagnostics never include sensitive payloads',
     () async {
       final rust = DocudisNative.open(path);

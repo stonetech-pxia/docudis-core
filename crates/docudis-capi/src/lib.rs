@@ -545,4 +545,32 @@ mod tests {
         assert_eq!(restored.text, "Alice: alice@example.com");
         unsafe { docudis_v1_buffer_free(&mut output) };
     }
+
+    #[test]
+    fn caller_confidence_round_trips_bit_for_bit() {
+        // serde_json's default float parser is not correctly rounded and
+        // shifted these 17-digit NER confidences by one ULP.
+        let request = br#"{"schema_version":1,"text":"Alice lives in Paris","regions":[],"detections":[{"type":"PERSON","value":"Alice","start":0,"end":5,"confidence":0.9998847145629489,"detector":"ner","source":"model","enabled":true},{"type":"ADDRESS","value":"Paris","start":15,"end":20,"confidence":0.9970184195601827,"detector":"ner","source":"model","enabled":true}]}"#;
+        type Call = unsafe extern "C" fn(*const u8, usize, *mut DocudisV1Buffer) -> DocudisV1Status;
+        for call in [docudis_v1_detect_json as Call, docudis_v1_process_json] {
+            let mut output = DocudisV1Buffer::EMPTY;
+            assert_eq!(
+                unsafe { call(request.as_ptr(), request.len(), &mut output) },
+                DocudisV1Status::Ok
+            );
+            let json =
+                std::str::from_utf8(unsafe { slice::from_raw_parts(output.ptr, output.len) })
+                    .unwrap()
+                    .to_owned();
+            unsafe { docudis_v1_buffer_free(&mut output) };
+            assert!(
+                json.contains(r#""confidence":0.9998847145629489"#),
+                "{json}"
+            );
+            assert!(
+                json.contains(r#""confidence":0.9970184195601827"#),
+                "{json}"
+            );
+        }
+    }
 }
