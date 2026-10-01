@@ -1,8 +1,9 @@
 // Copyright 2026 the Docudis contributors. Licensed under Apache-2.0.
 
 use docudis_core::{
-    anonymize, BundledListDetector, Detection, DetectionPipeline, DictionaryDetector, MappingEntry,
-    PlaceholderMap, RegexDetector, Replacement, RuleSelection,
+    anonymize, chunk_text, merge, regions_for_languages, BundledListDetector, Detection,
+    DetectionPipeline, DictionaryDetector, MappingEntry, PlaceholderMap, RegexDetector,
+    Replacement, ReplyCandidate, ReplyCheck, ReplyMatcher, RuleSelection, TextChunk,
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -118,6 +119,67 @@ struct RestoreRequest {
 struct RestoreResponse {
     schema_version: u32,
     text: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct ChunkRequest {
+    schema_version: u32,
+    text: String,
+    #[serde(default)]
+    taken: Vec<TextChunk>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct ChunkResponse {
+    schema_version: u32,
+    chunks: Vec<TextChunk>,
+}
+
+#[derive(Debug, Deserialize)]
+struct MergeRequest {
+    schema_version: u32,
+    text: String,
+    #[serde(default)]
+    detections: Vec<Detection>,
+}
+
+#[derive(Debug, Deserialize)]
+struct RegionsRequest {
+    schema_version: u32,
+    #[serde(default)]
+    languages: Vec<String>,
+    #[serde(default)]
+    text: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct RegionsResponse {
+    schema_version: u32,
+    regions: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ReplyCheckRequest {
+    schema_version: u32,
+    reply: String,
+    id: String,
+    #[serde(default)]
+    candidates: Vec<ReplyDocument>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ReplyDocument {
+    id: String,
+    text: String,
+    #[serde(default)]
+    placeholders: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct ReplyCheckResponse {
+    schema_version: u32,
+    #[serde(flatten)]
+    check: ReplyCheck,
 }
 
 struct ApiFailure(DocudisV1Status, String);
@@ -256,10 +318,9 @@ fn validate_schema(version: u32) -> Result<(), ApiFailure> {
     }
 }
 
-fn detect_request(request: &DetectRequest) -> Result<Vec<Detection>, ApiFailure> {
-    validate_schema(request.schema_version)?;
-    for (index, detection) in request.detections.iter().enumerate() {
-        let Some(value) = request.text.get(detection.start..detection.end) else {
+fn validate_detections(text: &str, detections: &[Detection]) -> Result<(), ApiFailure> {
+    for (index, detection) in detections.iter().enumerate() {
+        let Some(value) = text.get(detection.start..detection.end) else {
             return Err(ApiFailure(
                 DocudisV1Status::CoreError,
                 format!("detection {index} is not on valid UTF-8 boundaries"),
@@ -272,6 +333,12 @@ fn detect_request(request: &DetectRequest) -> Result<Vec<Detection>, ApiFailure>
             ));
         }
     }
+    Ok(())
+}
+
+fn detect_request(request: &DetectRequest) -> Result<Vec<Detection>, ApiFailure> {
+    validate_schema(request.schema_version)?;
+    validate_detections(&request.text, &request.detections)?;
     let regex = RegexDetector::bundled(request.regions.as_ref(), request.selection.as_ref())
         .map_err(|error| ApiFailure(DocudisV1Status::CoreError, error.to_string()))?;
     let mut candidates = regex
@@ -440,6 +507,124 @@ pub unsafe extern "C" fn docudis_v1_restore_json(
 }
 
 #[no_mangle]
+/// Cuts text into the review page's one-tap chunks around taken spans.
+///
+/// # Safety
+/// Same pointer and ownership contract as [`docudis_v1_anonymize_json`].
+pub unsafe extern "C" fn docudis_v1_chunk_json(
+    input: *const u8,
+    input_len: usize,
+    out: *mut DocudisV1Buffer,
+) -> DocudisV1Status {
+    // SAFETY: forwarded unchanged to the common checked ABI boundary.
+    unsafe {
+        invoke_json(input, input_len, out, |input| {
+            let request: ChunkRequest = parse_request(input)?;
+            validate_schema(request.schema_version)?;
+            let mut taken = Vec::with_capacity(request.taken.len());
+            for (index, range) in request.taken.iter().enumerate() {
+                if range.start > range.end || request.text.get(range.start..range.end).is_none() {
+                    return Err(ApiFailure(
+                        DocudisV1Status::CoreError,
+                        format!("taken range {index} is not on valid UTF-8 boundaries"),
+                    ));
+                }
+                taken.push((range.start, range.end));
+            }
+            response_json(&ChunkResponse {
+                schema_version: 1,
+                chunks: chunk_text(&request.text, &taken),
+            })
+        })
+    }
+}
+
+#[no_mangle]
+/// Resolves overlaps and propagates values among the given detections
+/// without detecting anything new (the review page's edits).
+///
+/// # Safety
+/// Same pointer and ownership contract as [`docudis_v1_anonymize_json`].
+pub unsafe extern "C" fn docudis_v1_merge_json(
+    input: *const u8,
+    input_len: usize,
+    out: *mut DocudisV1Buffer,
+) -> DocudisV1Status {
+    // SAFETY: forwarded unchanged to the common checked ABI boundary.
+    unsafe {
+        invoke_json(input, input_len, out, |input| {
+            let request: MergeRequest = parse_request(input)?;
+            validate_schema(request.schema_version)?;
+            validate_detections(&request.text, &request.detections)?;
+            response_json(&DetectResponse {
+                schema_version: 1,
+                detections: merge(&request.text, &request.detections, None),
+            })
+        })
+    }
+}
+
+#[no_mangle]
+/// Picks the rule-pack regions for a text's detected language tags.
+///
+/// # Safety
+/// Same pointer and ownership contract as [`docudis_v1_anonymize_json`].
+pub unsafe extern "C" fn docudis_v1_regions_json(
+    input: *const u8,
+    input_len: usize,
+    out: *mut DocudisV1Buffer,
+) -> DocudisV1Status {
+    // SAFETY: forwarded unchanged to the common checked ABI boundary.
+    unsafe {
+        invoke_json(input, input_len, out, |input| {
+            let request: RegionsRequest = parse_request(input)?;
+            validate_schema(request.schema_version)?;
+            let mut regions: Vec<_> =
+                regions_for_languages(request.languages.iter().map(String::as_str), &request.text)
+                    .into_iter()
+                    .collect();
+            regions.sort();
+            response_json(&RegionsResponse {
+                schema_version: 1,
+                regions,
+            })
+        })
+    }
+}
+
+#[no_mangle]
+/// Checks whether a pasted AI reply answers the given document.
+///
+/// # Safety
+/// Same pointer and ownership contract as [`docudis_v1_anonymize_json`].
+pub unsafe extern "C" fn docudis_v1_reply_check_json(
+    input: *const u8,
+    input_len: usize,
+    out: *mut DocudisV1Buffer,
+) -> DocudisV1Status {
+    // SAFETY: forwarded unchanged to the common checked ABI boundary.
+    unsafe {
+        invoke_json(input, input_len, out, |input| {
+            let request: ReplyCheckRequest = parse_request(input)?;
+            validate_schema(request.schema_version)?;
+            let matcher = ReplyMatcher::new(request.candidates.iter().map(|document| {
+                (
+                    document.id.clone(),
+                    ReplyCandidate::new(
+                        &document.text,
+                        document.placeholders.iter().map(String::as_str),
+                    ),
+                )
+            }));
+            response_json(&ReplyCheckResponse {
+                schema_version: 1,
+                check: matcher.check(&request.reply, &request.id),
+            })
+        })
+    }
+}
+
+#[no_mangle]
 /// Releases a buffer allocated by [`docudis_v1_anonymize_json`] and zeroes it.
 ///
 /// # Safety
@@ -546,12 +731,103 @@ mod tests {
         unsafe { docudis_v1_buffer_free(&mut output) };
     }
 
+    type Call = unsafe extern "C" fn(*const u8, usize, *mut DocudisV1Buffer) -> DocudisV1Status;
+
+    fn call_json(call: Call, request: serde_json::Value) -> (DocudisV1Status, serde_json::Value) {
+        let request = serde_json::to_vec(&request).unwrap();
+        let mut output = DocudisV1Buffer::EMPTY;
+        let status = unsafe { call(request.as_ptr(), request.len(), &mut output) };
+        let response = if output.ptr.is_null() {
+            serde_json::Value::Null
+        } else {
+            serde_json::from_slice(unsafe { slice::from_raw_parts(output.ptr, output.len) })
+                .unwrap()
+        };
+        unsafe { docudis_v1_buffer_free(&mut output) };
+        (status, response)
+    }
+
+    #[test]
+    fn chunk_json_returns_utf8_ranges_around_taken_spans() {
+        let (status, response) = call_json(
+            docudis_v1_chunk_json,
+            serde_json::json!({"schema_version":1,"text":"张三 met Bob","taken":[{"start":0,"end":6}]}),
+        );
+        assert_eq!(status, DocudisV1Status::Ok);
+        assert_eq!(
+            response,
+            serde_json::json!({"schema_version":1,"chunks":[{"start":7,"end":10},{"start":11,"end":14}]})
+        );
+        let (status, _) = call_json(
+            docudis_v1_chunk_json,
+            serde_json::json!({"schema_version":1,"text":"张三","taken":[{"start":0,"end":1}]}),
+        );
+        assert_eq!(status, DocudisV1Status::CoreError);
+    }
+
+    #[test]
+    fn merge_json_propagates_without_detecting() {
+        let (status, response) = call_json(
+            docudis_v1_merge_json,
+            serde_json::json!({"schema_version":1,"text":"Alice met Alice, call 06 12 34 56 78","detections":[
+                {"type":"PERSON","value":"Alice","start":0,"end":5,"confidence":0.9,"detector":"ner","source":"model","enabled":true}
+            ]}),
+        );
+        assert_eq!(status, DocudisV1Status::Ok);
+        let values: Vec<_> = response["detections"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|d| {
+                (
+                    d["start"].as_u64().unwrap(),
+                    d["source"].as_str().unwrap().to_owned(),
+                )
+            })
+            .collect();
+        // The phone is not detected: merge only works on what it is given.
+        assert_eq!(
+            values,
+            [(0, "model".to_owned()), (10, "propagated".to_owned())]
+        );
+    }
+
+    #[test]
+    fn regions_json_is_sorted() {
+        let (status, response) = call_json(
+            docudis_v1_regions_json,
+            serde_json::json!({"schema_version":1,"languages":["en-GB"],"text":"Invoice for 张三"}),
+        );
+        assert_eq!(status, DocudisV1Status::Ok);
+        assert_eq!(
+            response,
+            serde_json::json!({"schema_version":1,"regions":["cn","gb","ie","us"]})
+        );
+    }
+
+    #[test]
+    fn reply_check_json_reports_invented_labels_and_a_better_match() {
+        let candidates = serde_json::json!([
+            {"id":"a","text":"Lease for [PERSON_1] at [ADDRESS_1], rent paid monthly.","placeholders":["[PERSON_1]","[ADDRESS_1]"]},
+            {"id":"b","text":"Patient [PERSON_1] reported headaches and dizziness.","placeholders":["[PERSON_1]"]}
+        ]);
+        let (status, response) = call_json(
+            docudis_v1_reply_check_json,
+            serde_json::json!({"schema_version":1,"id":"b","candidates":candidates,
+                "reply":"The lease binds [PERSON_1] and [PERSON_3]; rent for [ADDRESS_1] is paid monthly."}),
+        );
+        assert_eq!(status, DocudisV1Status::Ok);
+        assert_eq!(
+            response,
+            serde_json::json!({"schema_version":1,"unknown":["[ADDRESS_1]"],"invented":["[PERSON_3]"],"better_match":"a"})
+        );
+    }
+
     #[test]
     fn caller_confidence_round_trips_bit_for_bit() {
         // serde_json's default float parser is not correctly rounded and
         // shifted these 17-digit NER confidences by one ULP.
         let request = br#"{"schema_version":1,"text":"Alice lives in Paris","regions":[],"detections":[{"type":"PERSON","value":"Alice","start":0,"end":5,"confidence":0.9998847145629489,"detector":"ner","source":"model","enabled":true},{"type":"ADDRESS","value":"Paris","start":15,"end":20,"confidence":0.9970184195601827,"detector":"ner","source":"model","enabled":true}]}"#;
-        type Call = unsafe extern "C" fn(*const u8, usize, *mut DocudisV1Buffer) -> DocudisV1Status;
         for call in [docudis_v1_detect_json as Call, docudis_v1_process_json] {
             let mut output = DocudisV1Buffer::EMPTY;
             assert_eq!(

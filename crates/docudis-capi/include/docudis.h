@@ -92,6 +92,50 @@ DOCUDIS_API DocudisV1Status docudis_v1_restore_json(
     size_t input_len,
     DocudisV1Buffer *out);
 
+/* Cuts text into the review page's one-tap chunks. `taken` holds the spans
+ * shown as placeholders; no chunk crosses one. All offsets are UTF-8 bytes.
+ *
+ * Input:  {"schema_version":1,"text":"...","taken":[{"start":0,"end":5}]}
+ * Output: {"schema_version":1,"chunks":[{"start":6,"end":9}]} */
+DOCUDIS_API DocudisV1Status docudis_v1_chunk_json(
+    const uint8_t *input,
+    size_t input_len,
+    DocudisV1Buffer *out);
+
+/* Resolves overlaps and propagates enabled values among the given
+ * detections without detecting anything new (review edits).
+ *
+ * Input:  {"schema_version":1,"text":"...","detections":[...]}
+ * Output: {"schema_version":1,"detections":[...]} */
+DOCUDIS_API DocudisV1Status docudis_v1_merge_json(
+    const uint8_t *input,
+    size_t input_len,
+    DocudisV1Buffer *out);
+
+/* Rule-pack regions for a text's detected BCP-47 language tags; Han text
+ * outside Japanese also turns on "cn". `regions` is sorted.
+ *
+ * Input:  {"schema_version":1,"languages":["en-GB"],"text":"..."}
+ * Output: {"schema_version":1,"regions":["gb","ie","us"]} */
+DOCUDIS_API DocudisV1Status docudis_v1_regions_json(
+    const uint8_t *input,
+    size_t input_len,
+    DocudisV1Buffer *out);
+
+/* Checks whether a pasted AI reply answers document `id` among
+ * `candidates` (each record's anonymized text and its placeholders).
+ * `better_match` is null or the id of a document the reply fits clearly
+ * better.
+ *
+ * Input:  {"schema_version":1,"reply":"...","id":"a",
+ *          "candidates":[{"id":"a","text":"...","placeholders":["[PERSON_1]"]}]}
+ * Output: {"schema_version":1,"unknown":["[EMAIL_1]"],
+ *          "invented":["[PERSON_4]"],"better_match":null} */
+DOCUDIS_API DocudisV1Status docudis_v1_reply_check_json(
+    const uint8_t *input,
+    size_t input_len,
+    DocudisV1Buffer *out);
+
 /* Releases a successful output buffer and zeroes it. NULL is accepted. */
 DOCUDIS_API void docudis_v1_buffer_free(DocudisV1Buffer *buffer);
 

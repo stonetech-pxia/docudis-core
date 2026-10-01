@@ -1,0 +1,164 @@
+{
+  "schema_version": 1,
+  "source": "docudis_engine (docudis-android) chunkText, DetectionPipeline.merge, RegexDetector.regionsForLanguages and ReplyMatcher reference implementation",
+  "candidates": [
+    {
+      "id": "lease",
+      "text": "Lease agreement between [PERSON_1] and [PERSON_2] for the flat at [ADDRESS_1]. [PERSON_1] pays the rent to IBAN [IBAN_1] every month.",
+      "placeholders": [
+        "[PERSON_1]",
+        "[PERSON_2]",
+        "[ADDRESS_1]",
+        "[IBAN_1]"
+      ]
+    },
+    {
+      "id": "medical",
+      "text": "Patient [PERSON_1], DNI [ID_1], was seen by Dr. [PERSON_2] on Monday. [PERSON_1] reported headaches and dizziness.",
+      "placeholders": [
+        "[PERSON_1]",
+        "[ID_1]",
+        "[PERSON_2]"
+      ]
+    },
+    {
+      "id": "invoice",
+      "text": "Invoice for [PERSON_1], email [EMAIL_1], phone [PHONE_1]. Nº de referencia: [ID_1].",
+      "placeholders": [
+        "[PERSON_1]",
+        "[EMAIL_1]",
+        "[PHONE_1]",
+        "[ID_1]"
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "name": "own_document_fits",
+      "id": "lease",
+      "reply": "Summary: the lease agreement binds [PERSON_1] and [PERSON_2]. [PERSON_1] pays the rent every month to [IBAN_1] for the flat at [ADDRESS_1].",
+      "unknown": [],
+      "invented": [],
+      "better_match": null
+    },
+    {
+      "name": "reply_belongs_to_another_document",
+      "id": "medical",
+      "reply": "Summary: the lease agreement binds [PERSON_1] and [PERSON_2]. [PERSON_1] pays the rent every month to [IBAN_1] for the flat at [ADDRESS_1].",
+      "unknown": [
+        "[IBAN_1]",
+        "[ADDRESS_1]"
+      ],
+      "invented": [],
+      "better_match": "lease"
+    },
+    {
+      "name": "reply_belongs_to_another_document_from_invoice",
+      "id": "invoice",
+      "reply": "Summary: the lease agreement binds [PERSON_1] and [PERSON_2]. [PERSON_1] pays the rent every month to [IBAN_1] for the flat at [ADDRESS_1].",
+      "unknown": [
+        "[IBAN_1]",
+        "[ADDRESS_1]"
+      ],
+      "invented": [
+        "[PERSON_2]"
+      ],
+      "better_match": "lease"
+    },
+    {
+      "name": "mangled_labels",
+      "id": "medical",
+      "reply": "The patient **[person 1]** with DNI [ID-1] saw PERSON_2; [Person_1.] has headaches.",
+      "unknown": [],
+      "invented": [],
+      "better_match": null
+    },
+    {
+      "name": "invented_and_unknown_labels",
+      "id": "medical",
+      "reply": "Patient [PERSON_1] (DNI [ID_1]) and [PERSON_7] filed [EXPEDIENTE_1]; write to [EMAIL_1].",
+      "unknown": [
+        "[EMAIL_1]"
+      ],
+      "invented": [
+        "[PERSON_7]",
+        "[EXPEDIENTE_1]"
+      ],
+      "better_match": null
+    },
+    {
+      "name": "legacy_alias_is_issued",
+      "id": "medical",
+      "reply": "Patient [PERSON_1] has [SSN_1] and [CREDIT_CARD_2].",
+      "unknown": [
+        "[SSN_1]",
+        "[CREDIT_CARD_2]"
+      ],
+      "invented": [],
+      "better_match": null
+    },
+    {
+      "name": "no_labels",
+      "id": "lease",
+      "reply": "Thanks, this looks fine to me.",
+      "unknown": [],
+      "invented": [],
+      "better_match": null
+    },
+    {
+      "name": "timestamps_are_not_labels",
+      "id": "lease",
+      "reply": "[12/9/26, 9:14] [PERSON_1]: hello [note]",
+      "unknown": [],
+      "invented": [],
+      "better_match": null
+    },
+    {
+      "name": "unknown_document",
+      "id": "missing",
+      "reply": "Summary: the lease agreement binds [PERSON_1] and [PERSON_2]. [PERSON_1] pays the rent every month to [IBAN_1] for the flat at [ADDRESS_1].",
+      "unknown": [],
+      "invented": [],
+      "better_match": null
+    },
+    {
+      "name": "cjk_reply",
+      "id": "invoice",
+      "reply": "[PERSON_1] 的邮箱是 [EMAIL_1]，电话 [PHONE_1]，参考号 [ID_1]。",
+      "unknown": [],
+      "invented": [],
+      "better_match": null
+    },
+    {
+      "name": "short_reply_gives_no_evidence",
+      "id": "medical",
+      "reply": "[PERSON_1] [PERSON_2]",
+      "unknown": [],
+      "invented": [],
+      "better_match": null
+    },
+    {
+      "name": "repeated_labels_reported_once_in_reading_order",
+      "id": "lease",
+      "reply": "[PERSON_9] then [EMAIL_1] then [PERSON_9] and [EMAIL_1] again, then [PHONE_1].",
+      "unknown": [
+        "[EMAIL_1]",
+        "[PHONE_1]"
+      ],
+      "invented": [
+        "[PERSON_9]"
+      ],
+      "better_match": null
+    },
+    {
+      "name": "context_words_match_label_neighbourhood",
+      "id": "medical",
+      "reply": "Nº de referencia: [ID_1] for the invoice to [PERSON_1], email [EMAIL_1].",
+      "unknown": [
+        "[EMAIL_1]"
+      ],
+      "invented": [],
+      "better_match": "invoice"
+    }
+  ]
+}

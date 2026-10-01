@@ -41,5 +41,33 @@ int main(void) {
                               &output) != DOCUDIS_V1_OK) return 10;
   if (output.ptr == NULL || output.len == 0) return 11;
   docudis_v1_buffer_free(&output);
+
+  const char chunk[] =
+      "{\"schema_version\":1,\"text\":\"Alice met Bob\","
+      "\"taken\":[{\"start\":0,\"end\":5}]}";
+  if (docudis_v1_chunk_json((const uint8_t *)chunk, sizeof(chunk) - 1,
+                            &output) != DOCUDIS_V1_OK) return 12;
+  if (output.ptr == NULL || output.len == 0) return 13;
+  docudis_v1_buffer_free(&output);
+  if (docudis_v1_merge_json((const uint8_t *)request, sizeof(request) - 1,
+                            &output) != DOCUDIS_V1_OK) return 14;
+  if (output.ptr == NULL || output.len == 0) return 15;
+  docudis_v1_buffer_free(&output);
+
+  const char regions[] =
+      "{\"schema_version\":1,\"languages\":[\"fr\"],\"text\":\"Bonjour\"}";
+  if (docudis_v1_regions_json((const uint8_t *)regions, sizeof(regions) - 1,
+                              &output) != DOCUDIS_V1_OK) return 16;
+  if (output.ptr == NULL || output.len == 0) return 17;
+  docudis_v1_buffer_free(&output);
+
+  const char reply[] =
+      "{\"schema_version\":1,\"reply\":\"[PERSON_1]\",\"id\":\"a\","
+      "\"candidates\":[{\"id\":\"a\",\"text\":\"[PERSON_1]\","
+      "\"placeholders\":[\"[PERSON_1]\"]}]}";
+  if (docudis_v1_reply_check_json((const uint8_t *)reply, sizeof(reply) - 1,
+                                  &output) != DOCUDIS_V1_OK) return 18;
+  if (output.ptr == NULL || output.len == 0) return 19;
+  docudis_v1_buffer_free(&output);
   return 0;
 }

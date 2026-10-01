@@ -1,0 +1,240 @@
+{
+  "schema_version": 1,
+  "source": "docudis_engine (docudis-android) chunkText, DetectionPipeline.merge, RegexDetector.regionsForLanguages and ReplyMatcher reference implementation",
+  "cases": [
+    {
+      "name": "no_language_uses_defaults",
+      "languages": [],
+      "text": "Hello",
+      "regions": [
+        "es",
+        "fr",
+        "gb",
+        "us"
+      ]
+    },
+    {
+      "name": "unknown_language_uses_defaults",
+      "languages": [
+        "xx"
+      ],
+      "text": "Hello",
+      "regions": [
+        "es",
+        "fr",
+        "gb",
+        "us"
+      ]
+    },
+    {
+      "name": "english",
+      "languages": [
+        "en"
+      ],
+      "text": "Hello",
+      "regions": [
+        "gb",
+        "ie",
+        "us"
+      ]
+    },
+    {
+      "name": "tags_with_regions_and_underscores",
+      "languages": [
+        "en-US",
+        "fr_FR",
+        "DE"
+      ],
+      "text": "Hallo",
+      "regions": [
+        "at",
+        "be",
+        "ch",
+        "de",
+        "fr",
+        "gb",
+        "ie",
+        "us"
+      ]
+    },
+    {
+      "name": "every_language",
+      "languages": [
+        "zh",
+        "en",
+        "fr",
+        "es",
+        "de",
+        "it",
+        "pt",
+        "nl",
+        "pl",
+        "sv",
+        "no",
+        "nb",
+        "nn",
+        "da",
+        "fi",
+        "ja",
+        "hi"
+      ],
+      "text": "x",
+      "regions": [
+        "at",
+        "be",
+        "ch",
+        "cn",
+        "de",
+        "dk",
+        "es",
+        "fi",
+        "fr",
+        "gb",
+        "ie",
+        "it",
+        "jp",
+        "nl",
+        "no",
+        "pl",
+        "pt",
+        "se",
+        "us"
+      ]
+    },
+    {
+      "name": "hindi_only_has_no_packs",
+      "languages": [
+        "hi"
+      ],
+      "text": "नमस्ते",
+      "regions": []
+    },
+    {
+      "name": "han_turns_on_cn",
+      "languages": [
+        "en"
+      ],
+      "text": "Invoice for 张三",
+      "regions": [
+        "cn",
+        "gb",
+        "ie",
+        "us"
+      ]
+    },
+    {
+      "name": "japanese_keeps_cn_off",
+      "languages": [
+        "ja"
+      ],
+      "text": "山田太郎",
+      "regions": [
+        "jp"
+      ]
+    },
+    {
+      "name": "japanese_and_english_keep_cn_off",
+      "languages": [
+        "ja",
+        "en"
+      ],
+      "text": "山田太郎",
+      "regions": [
+        "gb",
+        "ie",
+        "jp",
+        "us"
+      ]
+    },
+    {
+      "name": "ideographic_iteration_mark",
+      "languages": [
+        "en"
+      ],
+      "text": "x々",
+      "regions": [
+        "cn",
+        "gb",
+        "ie",
+        "us"
+      ]
+    },
+    {
+      "name": "ideographic_zero",
+      "languages": [
+        "en"
+      ],
+      "text": "x〇",
+      "regions": [
+        "cn",
+        "gb",
+        "ie",
+        "us"
+      ]
+    },
+    {
+      "name": "cjk_radical",
+      "languages": [
+        "en"
+      ],
+      "text": "x⺀",
+      "regions": [
+        "cn",
+        "gb",
+        "ie",
+        "us"
+      ]
+    },
+    {
+      "name": "compatibility_ideograph",
+      "languages": [
+        "en"
+      ],
+      "text": "x豈",
+      "regions": [
+        "cn",
+        "gb",
+        "ie",
+        "us"
+      ]
+    },
+    {
+      "name": "extension_b_ideograph",
+      "languages": [
+        "en"
+      ],
+      "text": "x𠀀",
+      "regions": [
+        "cn",
+        "gb",
+        "ie",
+        "us"
+      ]
+    },
+    {
+      "name": "kana_only",
+      "languages": [
+        "en"
+      ],
+      "text": "カタカナ",
+      "regions": [
+        "gb",
+        "ie",
+        "us"
+      ]
+    },
+    {
+      "name": "hangul_only",
+      "languages": [
+        "ko"
+      ],
+      "text": "홍길동",
+      "regions": [
+        "es",
+        "fr",
+        "gb",
+        "us"
+      ]
+    }
+  ]
+}

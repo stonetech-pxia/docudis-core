@@ -87,7 +87,10 @@ The authoritative declaration is `docudis-capi/include/docudis.h`.
 - `docudis_v1_anonymize_json` accepts caller-provided detections unchanged.
   `docudis_v1_detect_json`, `docudis_v1_process_json`, and
   `docudis_v1_restore_json` add detection, combined processing, and restoration
-  while preserving ABI v1. Complex
+  while preserving ABI v1. `docudis_v1_chunk_json`, `docudis_v1_merge_json`,
+  `docudis_v1_regions_json`, and `docudis_v1_reply_check_json` serve the review
+  and restore screens: one-tap chunks, merge without detection, rule-pack
+  regions for detected languages, and the reply-to-document check. Complex
   data is versioned with `schema_version: 1`; detection and replacement offsets
   are UTF-8 bytes.
 - Input memory remains owned by the caller. A successful output is allocated by

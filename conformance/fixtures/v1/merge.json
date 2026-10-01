@@ -1,0 +1,664 @@
+{
+  "schema_version": 1,
+  "source": "docudis_engine (docudis-android) chunkText, DetectionPipeline.merge, RegexDetector.regionsForLanguages and ReplyMatcher reference implementation",
+  "cases": [
+    {
+      "name": "propagates_enabled_values",
+      "text": "Alice Martin met Alice Martin and Bob at Acme Corp.",
+      "detections": [
+        {
+          "type": "PERSON",
+          "value": "Alice Martin",
+          "start_utf8": 0,
+          "end_utf8": 12,
+          "start_utf16": 0,
+          "end_utf16": 12,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "Bob",
+          "start_utf8": 34,
+          "end_utf8": 37,
+          "start_utf16": 34,
+          "end_utf16": 37,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "merged": [
+        {
+          "type": "PERSON",
+          "value": "Alice Martin",
+          "start_utf8": 0,
+          "end_utf8": 12,
+          "start_utf16": 0,
+          "end_utf16": 12,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "Alice Martin",
+          "start_utf8": 17,
+          "end_utf8": 29,
+          "start_utf16": 17,
+          "end_utf16": 29,
+          "confidence": 0.95,
+          "detector": "propagated",
+          "source": "propagated",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "Bob",
+          "start_utf8": 34,
+          "end_utf8": 37,
+          "start_utf16": 34,
+          "end_utf16": 37,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "disabled_values_do_not_propagate",
+      "text": "Alice Martin met Alice Martin and Bob at Acme Corp.",
+      "detections": [
+        {
+          "type": "PERSON",
+          "value": "Alice Martin",
+          "start_utf8": 0,
+          "end_utf8": 12,
+          "start_utf16": 0,
+          "end_utf16": 12,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": false
+        },
+        {
+          "type": "COMPANY",
+          "value": "Acme Corp",
+          "start_utf8": 41,
+          "end_utf8": 50,
+          "start_utf16": 41,
+          "end_utf16": 50,
+          "confidence": 0.9,
+          "detector": "fixture:bundledList",
+          "source": "bundledList",
+          "enabled": true
+        }
+      ],
+      "merged": [
+        {
+          "type": "PERSON",
+          "value": "Alice Martin",
+          "start_utf8": 0,
+          "end_utf8": 12,
+          "start_utf16": 0,
+          "end_utf16": 12,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": false
+        },
+        {
+          "type": "COMPANY",
+          "value": "Acme Corp",
+          "start_utf8": 41,
+          "end_utf8": 50,
+          "start_utf16": 41,
+          "end_utf16": 50,
+          "confidence": 0.9,
+          "detector": "fixture:bundledList",
+          "source": "bundledList",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "manual_span_wins_overlap",
+      "text": "Alice Martin met Alice Martin and Bob at Acme Corp.",
+      "detections": [
+        {
+          "type": "PERSON",
+          "value": "Alice Martin",
+          "start_utf8": 0,
+          "end_utf8": 12,
+          "start_utf16": 0,
+          "end_utf16": 12,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "CUSTOM",
+          "value": "Martin met",
+          "start_utf8": 6,
+          "end_utf8": 16,
+          "start_utf16": 6,
+          "end_utf16": 16,
+          "confidence": 0.9,
+          "detector": "fixture:manual",
+          "source": "manual",
+          "enabled": true
+        }
+      ],
+      "merged": [
+        {
+          "type": "CUSTOM",
+          "value": "Martin met",
+          "start_utf8": 6,
+          "end_utf8": 16,
+          "start_utf16": 6,
+          "end_utf16": 16,
+          "confidence": 0.9,
+          "detector": "fixture:manual",
+          "source": "manual",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "model_noise_is_dropped",
+      "text": "Alice Martin met Alice Martin and Bob at Acme Corp.",
+      "detections": [
+        {
+          "type": "PERSON",
+          "value": "Bob",
+          "start_utf8": 34,
+          "end_utf8": 37,
+          "start_utf16": 34,
+          "end_utf16": 37,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "at",
+          "start_utf8": 38,
+          "end_utf8": 40,
+          "start_utf16": 38,
+          "end_utf16": 40,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "A",
+          "start_utf8": 0,
+          "end_utf8": 1,
+          "start_utf16": 0,
+          "end_utf16": 1,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "merged": [
+        {
+          "type": "PERSON",
+          "value": "Bob",
+          "start_utf8": 34,
+          "end_utf8": 37,
+          "start_utf16": 34,
+          "end_utf16": 37,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "rule_beats_overlapping_model",
+      "text": "Contact: jean@exemple.fr, Jean Dupont, jean@exemple.fr",
+      "detections": [
+        {
+          "type": "EMAIL",
+          "value": "jean@exemple.fr",
+          "start_utf8": 9,
+          "end_utf8": 24,
+          "start_utf16": 9,
+          "end_utf16": 24,
+          "confidence": 0.9,
+          "detector": "fixture:strongRule",
+          "source": "strongRule",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "jean@exemple.fr, Jean",
+          "start_utf8": 9,
+          "end_utf8": 30,
+          "start_utf16": 9,
+          "end_utf16": 30,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "Jean Dupont",
+          "start_utf8": 26,
+          "end_utf8": 37,
+          "start_utf16": 26,
+          "end_utf16": 37,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "merged": [
+        {
+          "type": "EMAIL",
+          "value": "jean@exemple.fr",
+          "start_utf8": 9,
+          "end_utf8": 24,
+          "start_utf16": 9,
+          "end_utf16": 24,
+          "confidence": 0.9,
+          "detector": "fixture:strongRule",
+          "source": "strongRule",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "Jean Dupont",
+          "start_utf8": 26,
+          "end_utf8": 37,
+          "start_utf16": 26,
+          "end_utf16": 37,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "EMAIL",
+          "value": "jean@exemple.fr",
+          "start_utf8": 39,
+          "end_utf8": 54,
+          "start_utf16": 39,
+          "end_utf16": 54,
+          "confidence": 0.95,
+          "detector": "propagated",
+          "source": "propagated",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "cjk_emoji_nbsp_offsets",
+      "text": "张三和李四。张三走了 😀 Bob Lee",
+      "detections": [
+        {
+          "type": "PERSON",
+          "value": "张三",
+          "start_utf8": 0,
+          "end_utf8": 6,
+          "start_utf16": 0,
+          "end_utf16": 2,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "李四",
+          "start_utf8": 9,
+          "end_utf8": 15,
+          "start_utf16": 3,
+          "end_utf16": 5,
+          "confidence": 0.9,
+          "detector": "fixture:dictionary",
+          "source": "dictionary",
+          "enabled": false
+        },
+        {
+          "type": "PERSON",
+          "value": "Bob Lee",
+          "start_utf8": 36,
+          "end_utf8": 44,
+          "start_utf16": 14,
+          "end_utf16": 21,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "merged": [
+        {
+          "type": "PERSON",
+          "value": "张三",
+          "start_utf8": 0,
+          "end_utf8": 6,
+          "start_utf16": 0,
+          "end_utf16": 2,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "李四",
+          "start_utf8": 9,
+          "end_utf8": 15,
+          "start_utf16": 3,
+          "end_utf16": 5,
+          "confidence": 0.9,
+          "detector": "fixture:dictionary",
+          "source": "dictionary",
+          "enabled": false
+        },
+        {
+          "type": "PERSON",
+          "value": "张三",
+          "start_utf8": 18,
+          "end_utf8": 24,
+          "start_utf16": 6,
+          "end_utf16": 8,
+          "confidence": 0.95,
+          "detector": "propagated",
+          "source": "propagated",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "Bob Lee",
+          "start_utf8": 36,
+          "end_utf8": 44,
+          "start_utf16": 14,
+          "end_utf16": 21,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "empty_detections",
+      "text": "张三和李四。张三走了 😀 Bob Lee",
+      "detections": [],
+      "merged": []
+    },
+    {
+      "name": "review_toggles/as_detected",
+      "text": "Jean Dupont, né le 12/03/1980, IBAN FR76 3000 6000 0112 3456 7890 189, tél. 06 12 34 56 78, jean.dupont@exemple.fr. Total 1 250,00 €.",
+      "detections": [
+        {
+          "type": "BIRTH_DATE",
+          "value": "12/03/1980",
+          "start_utf8": 20,
+          "end_utf8": 30,
+          "start_utf16": 19,
+          "end_utf16": 29,
+          "confidence": 0.85,
+          "detector": "regex:universal:date_numeric",
+          "source": "strongRule",
+          "enabled": true
+        },
+        {
+          "type": "IBAN",
+          "value": "FR76 3000 6000 0112 3456 7890 189",
+          "start_utf8": 37,
+          "end_utf8": 70,
+          "start_utf16": 36,
+          "end_utf16": 69,
+          "confidence": 0.9,
+          "detector": "regex:universal:iban",
+          "source": "validatedRule",
+          "enabled": true
+        },
+        {
+          "type": "PHONE",
+          "value": "06 12 34 56 78",
+          "start_utf8": 78,
+          "end_utf8": 92,
+          "start_utf16": 76,
+          "end_utf16": 90,
+          "confidence": 0.85,
+          "detector": "regex:fr:phone",
+          "source": "strongRule",
+          "enabled": true
+        },
+        {
+          "type": "EMAIL",
+          "value": "jean.dupont@exemple.fr",
+          "start_utf8": 94,
+          "end_utf8": 116,
+          "start_utf16": 92,
+          "end_utf16": 114,
+          "confidence": 0.95,
+          "detector": "regex:universal:email",
+          "source": "strongRule",
+          "enabled": true
+        },
+        {
+          "type": "AMOUNT",
+          "value": "1 250,00 €",
+          "start_utf8": 124,
+          "end_utf8": 136,
+          "start_utf16": 122,
+          "end_utf16": 132,
+          "confidence": 0.85,
+          "detector": "regex:universal:currency_symbol_suffix",
+          "source": "strongRule",
+          "enabled": false
+        }
+      ],
+      "merged": [
+        {
+          "type": "BIRTH_DATE",
+          "value": "12/03/1980",
+          "start_utf8": 20,
+          "end_utf8": 30,
+          "start_utf16": 19,
+          "end_utf16": 29,
+          "confidence": 0.85,
+          "detector": "regex:universal:date_numeric",
+          "source": "strongRule",
+          "enabled": true
+        },
+        {
+          "type": "IBAN",
+          "value": "FR76 3000 6000 0112 3456 7890 189",
+          "start_utf8": 37,
+          "end_utf8": 70,
+          "start_utf16": 36,
+          "end_utf16": 69,
+          "confidence": 0.9,
+          "detector": "regex:universal:iban",
+          "source": "validatedRule",
+          "enabled": true
+        },
+        {
+          "type": "PHONE",
+          "value": "06 12 34 56 78",
+          "start_utf8": 78,
+          "end_utf8": 92,
+          "start_utf16": 76,
+          "end_utf16": 90,
+          "confidence": 0.85,
+          "detector": "regex:fr:phone",
+          "source": "strongRule",
+          "enabled": true
+        },
+        {
+          "type": "EMAIL",
+          "value": "jean.dupont@exemple.fr",
+          "start_utf8": 94,
+          "end_utf8": 116,
+          "start_utf16": 92,
+          "end_utf16": 114,
+          "confidence": 0.95,
+          "detector": "regex:universal:email",
+          "source": "strongRule",
+          "enabled": true
+        },
+        {
+          "type": "AMOUNT",
+          "value": "1 250,00 €",
+          "start_utf8": 124,
+          "end_utf8": 136,
+          "start_utf16": 122,
+          "end_utf16": 132,
+          "confidence": 0.85,
+          "detector": "regex:universal:currency_symbol_suffix",
+          "source": "strongRule",
+          "enabled": false
+        }
+      ]
+    },
+    {
+      "name": "review_toggles/toggled",
+      "text": "Jean Dupont, né le 12/03/1980, IBAN FR76 3000 6000 0112 3456 7890 189, tél. 06 12 34 56 78, jean.dupont@exemple.fr. Total 1 250,00 €.",
+      "detections": [
+        {
+          "type": "BIRTH_DATE",
+          "value": "12/03/1980",
+          "start_utf8": 20,
+          "end_utf8": 30,
+          "start_utf16": 19,
+          "end_utf16": 29,
+          "confidence": 0.85,
+          "detector": "regex:universal:date_numeric",
+          "source": "strongRule",
+          "enabled": false
+        },
+        {
+          "type": "IBAN",
+          "value": "FR76 3000 6000 0112 3456 7890 189",
+          "start_utf8": 37,
+          "end_utf8": 70,
+          "start_utf16": 36,
+          "end_utf16": 69,
+          "confidence": 0.9,
+          "detector": "regex:universal:iban",
+          "source": "validatedRule",
+          "enabled": true
+        },
+        {
+          "type": "PHONE",
+          "value": "06 12 34 56 78",
+          "start_utf8": 78,
+          "end_utf8": 92,
+          "start_utf16": 76,
+          "end_utf16": 90,
+          "confidence": 0.85,
+          "detector": "regex:fr:phone",
+          "source": "strongRule",
+          "enabled": false
+        },
+        {
+          "type": "EMAIL",
+          "value": "jean.dupont@exemple.fr",
+          "start_utf8": 94,
+          "end_utf8": 116,
+          "start_utf16": 92,
+          "end_utf16": 114,
+          "confidence": 0.95,
+          "detector": "regex:universal:email",
+          "source": "strongRule",
+          "enabled": true
+        },
+        {
+          "type": "AMOUNT",
+          "value": "1 250,00 €",
+          "start_utf8": 124,
+          "end_utf8": 136,
+          "start_utf16": 122,
+          "end_utf16": 132,
+          "confidence": 0.85,
+          "detector": "regex:universal:currency_symbol_suffix",
+          "source": "strongRule",
+          "enabled": true
+        }
+      ],
+      "merged": [
+        {
+          "type": "BIRTH_DATE",
+          "value": "12/03/1980",
+          "start_utf8": 20,
+          "end_utf8": 30,
+          "start_utf16": 19,
+          "end_utf16": 29,
+          "confidence": 0.85,
+          "detector": "regex:universal:date_numeric",
+          "source": "strongRule",
+          "enabled": false
+        },
+        {
+          "type": "IBAN",
+          "value": "FR76 3000 6000 0112 3456 7890 189",
+          "start_utf8": 37,
+          "end_utf8": 70,
+          "start_utf16": 36,
+          "end_utf16": 69,
+          "confidence": 0.9,
+          "detector": "regex:universal:iban",
+          "source": "validatedRule",
+          "enabled": true
+        },
+        {
+          "type": "PHONE",
+          "value": "06 12 34 56 78",
+          "start_utf8": 78,
+          "end_utf8": 92,
+          "start_utf16": 76,
+          "end_utf16": 90,
+          "confidence": 0.85,
+          "detector": "regex:fr:phone",
+          "source": "strongRule",
+          "enabled": false
+        },
+        {
+          "type": "EMAIL",
+          "value": "jean.dupont@exemple.fr",
+          "start_utf8": 94,
+          "end_utf8": 116,
+          "start_utf16": 92,
+          "end_utf16": 114,
+          "confidence": 0.95,
+          "detector": "regex:universal:email",
+          "source": "strongRule",
+          "enabled": true
+        },
+        {
+          "type": "AMOUNT",
+          "value": "1 250,00 €",
+          "start_utf8": 124,
+          "end_utf8": 136,
+          "start_utf16": 122,
+          "end_utf16": 132,
+          "confidence": 0.85,
+          "detector": "regex:universal:currency_symbol_suffix",
+          "source": "strongRule",
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}

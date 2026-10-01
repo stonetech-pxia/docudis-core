@@ -61,6 +61,18 @@ class DocudisNative {
       _restore = library.lookupFunction<_CallNative, _CallDart>(
         'docudis_v1_restore_json',
       ),
+      _chunk = library.lookupFunction<_CallNative, _CallDart>(
+        'docudis_v1_chunk_json',
+      ),
+      _merge = library.lookupFunction<_CallNative, _CallDart>(
+        'docudis_v1_merge_json',
+      ),
+      _regions = library.lookupFunction<_CallNative, _CallDart>(
+        'docudis_v1_regions_json',
+      ),
+      _replyCheck = library.lookupFunction<_CallNative, _CallDart>(
+        'docudis_v1_reply_check_json',
+      ),
       _free = library.lookupFunction<_FreeNative, _FreeDart>(
         'docudis_v1_buffer_free',
       ),
@@ -92,6 +104,10 @@ class DocudisNative {
   final _CallDart _detect;
   final _CallDart _process;
   final _CallDart _restore;
+  final _CallDart _chunk;
+  final _CallDart _merge;
+  final _CallDart _regions;
+  final _CallDart _replyCheck;
   final _FreeDart _free;
   final _ErrorDart _lastError;
 
@@ -127,16 +143,54 @@ class DocudisNative {
   Map<String, Object?> restore(Map<String, Object?> request) =>
       _call(_restore, request);
 
+  /// `{text, taken: [{start, end}]}` -> `{chunks: [{start, end}]}`.
+  Map<String, Object?> chunk(
+    Map<String, Object?> request, {
+    bool offsetsAreUtf16 = true,
+  }) => _call(
+    _chunk,
+    _request(request, offsetsAreUtf16),
+    convertResponseOffsets: offsetsAreUtf16,
+  );
+
+  /// `{text, detections}` -> `{detections}`, without detecting anything new.
+  Map<String, Object?> merge(
+    Map<String, Object?> request, {
+    bool offsetsAreUtf16 = true,
+  }) => _call(
+    _merge,
+    _request(request, offsetsAreUtf16),
+    convertResponseOffsets: offsetsAreUtf16,
+  );
+
+  /// `{languages, text}` -> `{regions}`.
+  Map<String, Object?> regions(Map<String, Object?> request) =>
+      _call(_regions, {'schema_version': 1, ...request});
+
+  /// `{reply, id, candidates: [{id, text, placeholders}]}` ->
+  /// `{unknown, invented, better_match}`.
+  Map<String, Object?> replyCheck(Map<String, Object?> request) =>
+      _call(_replyCheck, {'schema_version': 1, ...request});
+
   Map<String, Object?> _request(Map<String, Object?> request, bool convert) {
     final text = request['text']! as String;
     final detections = request['detections'] as List<Object?>?;
+    final taken = request['taken'] as List<Object?>?;
+    final index = convert && (detections != null || taken != null)
+        ? OffsetIndex(text)
+        : null;
     return {
       'schema_version': 1,
       ...request,
-      if (convert && detections != null)
+      if (index != null && detections != null)
         'detections': [
           for (final d in detections)
-            detectionUtf16ToUtf8(text, (d! as Map).cast<String, Object?>()),
+            _rangeToUtf8(index, (d! as Map).cast<String, Object?>()),
+        ],
+      if (index != null && taken != null)
+        'taken': [
+          for (final r in taken)
+            _rangeToUtf8(index, (r! as Map).cast<String, Object?>()),
         ],
     };
   }
@@ -175,30 +229,37 @@ class DocudisNative {
     }
   }
 
+  /// Turns every `start`/`end` range the response carries (detections,
+  /// replacements, chunks) into UTF-16 offsets, indexing the text once.
   static void _convertResponse(Map<String, Object?> response, String text) {
-    final detections = response['detections'] as List<Object?>?;
-    if (detections != null) {
-      response['detections'] = [
-        for (final d in detections)
-          detectionUtf8ToUtf16(text, (d! as Map).cast<String, Object?>()),
-      ];
-    }
-    final replacements = response['replacements'] as List<Object?>?;
-    if (replacements != null) {
-      response['replacements'] = [
-        for (final raw in replacements)
-          _replacementUtf8ToUtf16(text, (raw! as Map).cast<String, Object?>()),
+    OffsetIndex? index;
+    for (final key in const ['detections', 'replacements', 'chunks']) {
+      final ranges = response[key] as List<Object?>?;
+      if (ranges == null) continue;
+      index ??= OffsetIndex(text);
+      response[key] = [
+        for (final r in ranges)
+          _rangeToUtf16(index, (r! as Map).cast<String, Object?>()),
       ];
     }
   }
 
-  static Map<String, Object?> _replacementUtf8ToUtf16(
-    String text,
-    Map<String, Object?> raw,
+  static Map<String, Object?> _rangeToUtf8(
+    OffsetIndex index,
+    Map<String, Object?> range,
   ) => {
-    ...raw,
-    'start': utf8ToUtf16Offset(text, raw['start']! as int),
-    'end': utf8ToUtf16Offset(text, raw['end']! as int),
+    ...range,
+    'start': index.toUtf8(range['start']! as int),
+    'end': index.toUtf8(range['end']! as int),
+  };
+
+  static Map<String, Object?> _rangeToUtf16(
+    OffsetIndex index,
+    Map<String, Object?> range,
+  ) => {
+    ...range,
+    'start': index.toUtf16(range['start']! as int),
+    'end': index.toUtf16(range['end']! as int),
   };
 
   static DocudisStatus _status(int code) => switch (code) {

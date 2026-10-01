@@ -39,6 +39,10 @@ required=(
   docudis_v1_detect_json
   docudis_v1_process_json
   docudis_v1_restore_json
+  docudis_v1_chunk_json
+  docudis_v1_merge_json
+  docudis_v1_regions_json
+  docudis_v1_reply_check_json
   docudis_v1_buffer_free
   docudis_v1_last_error_message
 )

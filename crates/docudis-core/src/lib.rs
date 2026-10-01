@@ -10,6 +10,7 @@
 //! boundary.
 
 mod anonymizer;
+mod chunker;
 mod detection;
 mod detector;
 mod entity_type;
@@ -18,10 +19,12 @@ mod offsets;
 mod pipeline;
 mod placeholder_map;
 mod regex_detector;
+mod reply_match;
 mod rules;
 mod validators;
 
 pub use anonymizer::{anonymize, AnonymizeError, AnonymizedText, Replacement};
+pub use chunker::{chunk_text, TextChunk};
 pub use detection::{Detection, DetectionSource};
 pub use detector::Detector;
 pub use entity_type::EntityType;
@@ -33,6 +36,7 @@ pub use pipeline::{
 };
 pub use placeholder_map::{MappingEntry, PersonGender, PlaceholderMap};
 pub use regex_detector::{RegexDetectError, RegexDetector, STRONG_CONFIDENCE};
+pub use reply_match::{ReplyCandidate, ReplyCheck, ReplyMatcher};
 pub use rules::{
     bundled_rules, parse_rule_pack, regions_for_languages, RegexRule, RuleApplicability,
     RuleCategory, RuleClassification, RuleDefaultAction, RuleError, RulePackScope,

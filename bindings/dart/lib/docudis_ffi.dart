@@ -3,5 +3,7 @@
 library;
 
 export 'src/binding.dart';
+export 'src/core.dart';
 export 'src/differential.dart';
+export 'src/models.dart';
 export 'src/offsets.dart';

@@ -13,7 +13,8 @@ model tokenizers.
 - `crates/docudis-cli`: command-line adapter.
 - `bindings/dart`: Dart FFI adapter with ABI validation and safe buffer ownership.
 - `data`: authoritative rule packs and bundled lists.
-- `conformance`: shared v1 fixtures (445 rule and 29 pipeline cases).
+- `conformance`: shared v1 fixtures (rules, pipeline, anonymization, and the
+  review/restore helpers: chunks, merge, regions, reply checks).
 
 The Android application consumes versioned Core artifacts. It must not copy or
 independently edit `data/rules`; generated Dart snapshots are verified against a

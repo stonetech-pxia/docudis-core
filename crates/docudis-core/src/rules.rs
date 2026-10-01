@@ -6,7 +6,7 @@
 use crate::{validators, EntityType};
 use fancy_regex::Regex;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashSet, error::Error, fmt};
+use std::{collections::HashSet, error::Error, fmt, sync::LazyLock};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -387,6 +387,11 @@ pub fn bundled_rules(
     Ok(out)
 }
 
+/// Any Han character, as the Dart reference's `\p{Script=Han}`: also the
+/// iteration mark, radicals, compatibility and supplementary ideographs.
+static HAN: LazyLock<regex::Regex> =
+    LazyLock::new(|| regex::Regex::new(r"\p{Han}").expect("Han pattern compiles"));
+
 pub fn regions_for_languages<'a>(
     tags: impl IntoIterator<Item = &'a str>,
     text: &str,
@@ -445,7 +450,7 @@ pub fn regions_for_languages<'a>(
     }) {
         out.extend(["us", "gb", "fr", "es"].map(str::to_owned));
     }
-    if !langs.contains("ja") && text.chars().any(|c| ('\u{3400}'..='\u{9fff}').contains(&c)) {
+    if !langs.contains("ja") && HAN.is_match(text) {
         out.insert("cn".to_owned());
     }
     out

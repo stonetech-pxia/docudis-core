@@ -1,6 +1,6 @@
 # Docudis conformance fixtures
 
-The v1 directory contains three language-neutral compatibility sources:
+The v1 directory contains these language-neutral compatibility sources:
 
 - `anonymization.json`: placeholder assignment, replacement, previous maps,
   person variants, disabled spans, and restoration.
@@ -10,6 +10,11 @@ The v1 directory contains three language-neutral compatibility sources:
 - `pipeline.json`: 29 cases covering overlap priority, dictionary yielding, external NER merge,
   never-hide, birth-date defaults, repair, propagation, CJK, emoji, NBSP, and
   disabled detections.
+- `chunks.json`, `merge.json`, `regions.json`, `reply_check.json`: the review
+  and restore helpers (`chunkText`, `DetectionPipeline.merge`,
+  `RegexDetector.regionsForLanguages`, `ReplyMatcher`) on hand-written cases,
+  with taken spans from the rule pipeline. `reply_check.json` also lists the
+  candidate documents every check runs against.
 
 Every detection and replacement records both:
 
@@ -28,6 +33,12 @@ generated from the Dart reference implementation with:
 dart run tool/generate_rust_rule_conformance.dart
 dart run tool/generate_rust_pipeline_conformance.dart
 ```
+
+The review fixtures (`chunks`, `merge`, `regions`, `reply_check`) were written
+once by a script against `docudis_engine` at docudis-android `83224c3`; the
+script is not kept. Rust and the Dart binding were also compared with the
+reference on every docudis-android benchmark text locally; those texts are
+not copied here.
 
 Both generators carry Apache-2.0 notices and record their source in the JSON.
 Authoritative rule data now lives in `data/rules`; the rule data retains the

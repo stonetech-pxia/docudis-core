@@ -353,7 +353,7 @@ fn token_shaped_key(value: &str) -> bool {
             && value[2..value.len() - 2].find(['<', '>', '\n']).is_none())
 }
 
-fn canonical_placeholder_form(candidate: &str) -> Option<String> {
+pub(crate) fn canonical_placeholder_form(candidate: &str) -> Option<String> {
     let stripped: String = candidate
         .chars()
         .filter(|ch| !matches!(ch, '*' | '`' | '~'))
@@ -373,7 +373,7 @@ fn canonical_placeholder_form(candidate: &str) -> Option<String> {
     }
 }
 
-fn mangled_candidates(text: &str) -> Vec<(usize, usize)> {
+pub(crate) fn mangled_candidates(text: &str) -> Vec<(usize, usize)> {
     let mut result = Vec::new();
     let mut cursor = 0;
     while cursor < text.len() {
