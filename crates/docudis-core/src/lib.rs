@@ -36,7 +36,7 @@ pub use list_detectors::{BundledListDetector, DictionaryDetector};
 pub use offsets::{utf16_to_utf8_offset, utf8_to_utf16_offset, OffsetError};
 pub use pipeline::{
     follows_birth_label, merge, propagate, repair_spans, resolve_overlaps, with_defaults,
-    DetectionPipeline, NeverHide, NeverHideSpans,
+    DetectionPipeline, DetectionPolicy, NeverHide, NeverHideSpans, TypeAction,
 };
 pub use placeholder_map::{MappingEntry, PersonGender, PlaceholderMap};
 pub use regex_detector::{RegexDetectError, RegexDetector, STRONG_CONFIDENCE};

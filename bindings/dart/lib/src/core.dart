@@ -17,6 +17,8 @@ class DocudisCore {
   /// Bundled rules (only [regions]' packs plus the universal one when given),
   /// the user's [dictionary] and, optionally, the bundled company and place
   /// lists, merged with the caller's own [detections] (model spans).
+  /// [policy] says which types and parts of the text to hide; it needs a
+  /// library of version 0.2.0 or later, which older ones silently ignore.
   List<Detection> detect(
     String text, {
     Set<String>? regions,
@@ -24,6 +26,7 @@ class DocudisCore {
     List<String> neverHide = const [],
     bool includeBundledLists = false,
     List<Detection> detections = const [],
+    DetectionPolicy? policy,
   }) => _detections(
     native.detect(
       _detectRequest(
@@ -33,6 +36,7 @@ class DocudisCore {
         neverHide,
         includeBundledLists,
         detections,
+        policy,
       ),
     ),
   );
@@ -45,6 +49,7 @@ class DocudisCore {
     List<String> neverHide = const [],
     bool includeBundledLists = false,
     List<Detection> detections = const [],
+    DetectionPolicy? policy,
     PlaceholderMap? previous,
   }) {
     final response = native.process({
@@ -55,6 +60,7 @@ class DocudisCore {
         neverHide,
         includeBundledLists,
         detections,
+        policy,
       ),
       if (previous != null) 'previous_map': _entries(previous),
     });
@@ -158,6 +164,7 @@ class DocudisCore {
     List<String> neverHide,
     bool includeBundledLists,
     List<Detection> detections,
+    DetectionPolicy? policy,
   ) => {
     'text': text,
     if (regions != null) 'regions': regions.toList(),
@@ -165,6 +172,7 @@ class DocudisCore {
     'never_hide': neverHide,
     'include_bundled_lists': includeBundledLists,
     'detections': [for (final d in detections) d.toJson()],
+    if (policy != null) 'policy': policy.toJson(),
   };
 
   static List<Map<String, Object?>> _entries(PlaceholderMap map) => [

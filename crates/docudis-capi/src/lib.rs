@@ -2,13 +2,14 @@
 
 use docudis_core::{
     anonymize, chunk_text, merge, regions_for_languages, BundledListDetector, Detection,
-    DetectionPipeline, DictionaryDetector, MappingEntry, PlaceholderMap, RegexDetector,
-    Replacement, ReplyCandidate, ReplyCheck, ReplyMatcher, RuleSelection, TextChunk,
+    DetectionPipeline, DetectionPolicy, DictionaryDetector, EntityType, MappingEntry,
+    PlaceholderMap, RegexDetector, Replacement, ReplyCandidate, ReplyCheck, ReplyMatcher,
+    RuleSelection, TextChunk, TypeAction,
 };
 use serde::{Deserialize, Serialize};
 use std::{
     cell::RefCell,
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     ffi::{c_char, CString},
     panic::{catch_unwind, AssertUnwindSafe},
     ptr, slice,
@@ -99,6 +100,18 @@ struct DetectRequest {
     detections: Vec<Detection>,
     #[serde(default)]
     previous_map: Vec<MappingEntry>,
+    #[serde(default)]
+    policy: Option<PolicyRequest>,
+}
+
+/// Names stay strings here so unknown ones fail with a readable
+/// `InvalidArgument` instead of a JSON error.
+#[derive(Debug, Deserialize)]
+struct PolicyRequest {
+    #[serde(default)]
+    types: Option<HashMap<String, String>>,
+    #[serde(default)]
+    ranges: Option<Vec<(usize, usize)>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -348,9 +361,41 @@ fn validate_detections(text: &str, detections: &[Detection]) -> Result<(), ApiFa
     Ok(())
 }
 
+fn policy(text: &str, request: Option<&PolicyRequest>) -> Result<DetectionPolicy, ApiFailure> {
+    let invalid = |message: String| {
+        ApiFailure(
+            DocudisV1Status::InvalidArgument,
+            format!("policy {message}"),
+        )
+    };
+    let Some(request) = request else {
+        return Ok(DetectionPolicy::default());
+    };
+    let mut types = HashMap::new();
+    for (name, action) in request.types.iter().flatten() {
+        let entity_type = EntityType::from_name(name).ok_or_else(|| {
+            invalid(format!(
+                "types: unknown entity type {name:?}; expected one of {}",
+                EntityType::ALL.map(EntityType::placeholder_name).join(", ")
+            ))
+        })?;
+        let action: TypeAction = action
+            .parse()
+            .map_err(|error| invalid(format!("types.{name}: {error}")))?;
+        types.insert(entity_type, action);
+    }
+    let policy = DetectionPolicy {
+        types,
+        ranges: request.ranges.clone(),
+    };
+    policy.check(text).map_err(invalid)?;
+    Ok(policy)
+}
+
 fn detect_request(request: &DetectRequest) -> Result<Vec<Detection>, ApiFailure> {
     validate_schema(request.schema_version)?;
     validate_detections(&request.text, &request.detections)?;
+    let policy = policy(&request.text, request.policy.as_ref())?;
     let regex = RegexDetector::bundled(request.regions.as_ref(), request.selection.as_ref())
         .map_err(|error| ApiFailure(DocudisV1Status::CoreError, error.to_string()))?;
     let mut candidates = regex
@@ -366,7 +411,9 @@ fn detect_request(request: &DetectRequest) -> Result<Vec<Detection>, ApiFailure>
         );
     }
     candidates.extend(request.detections.iter().cloned());
-    Ok(DetectionPipeline::new(request.never_hide.clone()).process(&request.text, candidates))
+    Ok(DetectionPipeline::new(request.never_hide.clone())
+        .with_policy(policy)
+        .process(&request.text, candidates))
 }
 
 fn parse_request<T: for<'de> Deserialize<'de>>(input: &str) -> Result<T, ApiFailure> {
@@ -891,6 +938,81 @@ mod tests {
             response,
             serde_json::json!({"schema_version":1,"unknown":["[ADDRESS_1]"],"invented":["[PERSON_3]"],"better_match":"a"})
         );
+    }
+
+    #[test]
+    fn policy_is_optional_and_null_means_absent() {
+        let request = serde_json::json!({"schema_version":1,"text":"Alice: alice@example.com, 2024-03-12","regions":[],"dictionary":["Alice"]});
+        let (status, plain) = call_json(docudis_v1_process_json, request.clone());
+        assert_eq!(status, DocudisV1Status::Ok);
+        for policy in [
+            serde_json::Value::Null,
+            serde_json::json!({}),
+            serde_json::json!({"types":null,"ranges":null}),
+            serde_json::json!({"types":{}}),
+        ] {
+            let mut with = request.clone();
+            with["policy"] = policy;
+            assert_eq!(
+                call_json(docudis_v1_process_json, with),
+                (status, plain.clone())
+            );
+        }
+    }
+
+    #[test]
+    fn policy_hides_types_and_limits_ranges() {
+        let text = "Alice: alice@example.com\nBob: bob@example.com";
+        let (status, response) = call_json(
+            docudis_v1_process_json,
+            serde_json::json!({"schema_version":1,"text":text,"regions":[],
+                "policy":{"types":{"EMAIL":"keep"},"ranges":[[25, text.len()]]}}),
+        );
+        assert_eq!(status, DocudisV1Status::Ok);
+        assert_eq!(response["text"], text);
+        let detections = response["detections"].as_array().unwrap();
+        assert_eq!(detections.len(), 1);
+        assert_eq!(detections[0]["value"], "bob@example.com");
+        assert_eq!(detections[0]["enabled"], false);
+    }
+
+    #[test]
+    fn invalid_policy_is_an_invalid_argument() {
+        for (policy, message) in [
+            (
+                serde_json::json!({"types":{"PEOPLE":"off"}}),
+                "policy types: unknown entity type \"PEOPLE\"; expected one of PERSON, EMAIL",
+            ),
+            (
+                serde_json::json!({"types":{"DATE":"show"}}),
+                "policy types.DATE: unknown type action \"show\"",
+            ),
+            (serde_json::json!({"ranges":[]}), "policy ranges is empty"),
+            (
+                serde_json::json!({"ranges":[[4, 2]]}),
+                "policy range 0 [4, 2) is empty",
+            ),
+            (
+                serde_json::json!({"ranges":[[0, 4]]}),
+                "policy range 0 [0, 4) is not on UTF-8 character boundaries",
+            ),
+            (
+                serde_json::json!({"ranges":[[0, 3], [3, 99]]}),
+                "policy range 1 [3, 99) is outside the text (9 bytes)",
+            ),
+        ] {
+            for call in [docudis_v1_detect_json as Call, docudis_v1_process_json] {
+                let (status, response) = call_json(
+                    call,
+                    serde_json::json!({"schema_version":1,"text":"Hi 张三","policy":policy}),
+                );
+                assert_eq!(status, DocudisV1Status::InvalidArgument, "{policy}");
+                assert!(response.is_null());
+                let error = unsafe { CStr::from_ptr(docudis_v1_last_error_message()) };
+                let error = error.to_str().unwrap();
+                assert!(error.starts_with(message), "{error}");
+            }
+        }
     }
 
     #[test]

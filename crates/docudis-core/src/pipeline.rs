@@ -2,7 +2,11 @@
 
 use crate::{Detection, DetectionSource, DictionaryDetector, EntityType};
 use regex::Regex;
-use std::{cmp::Reverse, collections::HashSet};
+use std::{
+    cmp::Reverse,
+    collections::{HashMap, HashSet},
+    str::FromStr,
+};
 
 #[derive(Default)]
 pub struct NeverHide {
@@ -49,14 +53,109 @@ impl NeverHideSpans {
     }
 }
 
+/// What to do with every detection of one [`EntityType`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TypeAction {
+    /// Hide it, even where the defaults would only show it (dates, amounts).
+    Hide,
+    /// Detect it and let it win overlaps, but leave it visible.
+    Keep,
+    /// Drop it before overlaps are resolved, so it cannot displace others.
+    Off,
+}
+impl FromStr for TypeAction {
+    type Err = String;
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match value {
+            "hide" => Ok(Self::Hide),
+            "keep" => Ok(Self::Keep),
+            "off" => Ok(Self::Off),
+            _ => Err(format!(
+                "unknown type action {value:?}; expected \"hide\", \"keep\" or \"off\""
+            )),
+        }
+    }
+}
+
+/// What the user wants hidden, independent of which detector or model found
+/// it. `types` does not apply to dictionary terms or manual spans, which
+/// already state the user's intent; `ranges` applies to everything.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct DetectionPolicy {
+    pub types: HashMap<EntityType, TypeAction>,
+    /// Half-open UTF-8 byte ranges to process; `None` processes the whole
+    /// text. A detection touching any range is kept whole.
+    pub ranges: Option<Vec<(usize, usize)>>,
+}
+impl DetectionPolicy {
+    /// Checks `ranges` against `text`: non-empty, each `start < end`, inside
+    /// the text and on character boundaries.
+    pub fn check(&self, text: &str) -> Result<(), String> {
+        let Some(ranges) = &self.ranges else {
+            return Ok(());
+        };
+        if ranges.is_empty() {
+            return Err("ranges is empty; omit it to process the whole text".into());
+        }
+        for (index, &(start, end)) in ranges.iter().enumerate() {
+            if start >= end {
+                return Err(format!(
+                    "range {index} [{start}, {end}) is empty; start must be less than end"
+                ));
+            }
+            if end > text.len() {
+                return Err(format!(
+                    "range {index} [{start}, {end}) is outside the text ({} bytes)",
+                    text.len()
+                ));
+            }
+            if !text.is_char_boundary(start) || !text.is_char_boundary(end) {
+                return Err(format!(
+                    "range {index} [{start}, {end}) is not on UTF-8 character boundaries"
+                ));
+            }
+        }
+        Ok(())
+    }
+    fn in_ranges(&self, d: &Detection) -> bool {
+        self.ranges
+            .as_ref()
+            .is_none_or(|ranges| ranges.iter().any(|&(a, b)| a < d.end && d.start < b))
+    }
+    fn apply(&self, mut d: Detection) -> Option<Detection> {
+        if !self.in_ranges(&d) {
+            return None;
+        }
+        if matches!(
+            d.source,
+            DetectionSource::Dictionary | DetectionSource::Manual
+        ) {
+            return Some(d);
+        }
+        match self.types.get(&d.entity_type) {
+            Some(TypeAction::Off) => return None,
+            Some(TypeAction::Hide) => d.enabled = true,
+            Some(TypeAction::Keep) => d.enabled = false,
+            None => {}
+        }
+        Some(d)
+    }
+}
+
 pub struct DetectionPipeline {
     pub never_hide: NeverHide,
+    pub policy: DetectionPolicy,
 }
 impl DetectionPipeline {
     pub fn new(never_hide: impl IntoIterator<Item = String>) -> Self {
         Self {
             never_hide: NeverHide::new(never_hide),
+            policy: DetectionPolicy::default(),
         }
+    }
+    pub fn with_policy(mut self, policy: DetectionPolicy) -> Self {
+        self.policy = policy;
+        self
     }
     pub fn process(&self, text: &str, candidates: Vec<Detection>) -> Vec<Detection> {
         if text.trim().is_empty() {
@@ -70,10 +169,15 @@ impl DetectionPipeline {
         let fresh = with_defaults(text, candidates)
             .into_iter()
             .filter(|d| not_noise(d) && !readable.covers(d) && !public_product(text, d))
+            .filter_map(|d| self.policy.apply(d))
             .collect::<Vec<_>>();
         let kept = resolve_overlaps(&fresh);
         let repaired = repair_spans(text, &kept, &fresh);
-        merge(text, &repaired, Some(&readable))
+        // Repaired spans and propagated copies derive from kept ones, whose
+        // types already passed the policy; only their position is checked.
+        merge_where(text, &repaired, |d| {
+            !readable.covers(d) && self.policy.in_ranges(d)
+        })
     }
 }
 
@@ -238,7 +342,13 @@ pub fn merge(
     candidates: &[Detection],
     readable: Option<&NeverHideSpans>,
 ) -> Vec<Detection> {
-    let allowed = |d: &Detection| readable.is_none_or(|r| !r.covers(d));
+    merge_where(text, candidates, |d| readable.is_none_or(|r| !r.covers(d)))
+}
+fn merge_where(
+    text: &str,
+    candidates: &[Detection],
+    allowed: impl Fn(&Detection) -> bool,
+) -> Vec<Detection> {
     let kept = resolve_overlaps(
         &candidates
             .iter()
@@ -247,7 +357,7 @@ pub fn merge(
             .collect::<Vec<_>>(),
     );
     let mut all = kept.clone();
-    all.extend(propagate(text, &kept).into_iter().filter(allowed));
+    all.extend(propagate(text, &kept).into_iter().filter(|d| allowed(d)));
     resolve_overlaps(&all)
 }
 
@@ -1179,6 +1289,246 @@ mod tests {
             enabled: true,
         }
     }
+    fn at(
+        text: &str,
+        value: &str,
+        from: usize,
+        kind: EntityType,
+        source: DetectionSource,
+    ) -> Detection {
+        let start = from + text[from..].find(value).unwrap();
+        Detection {
+            entity_type: kind,
+            ..d(value, start, source)
+        }
+    }
+    fn run(
+        text: &str,
+        policy: DetectionPolicy,
+        candidates: Vec<Detection>,
+    ) -> Vec<(String, EntityType, usize, bool)> {
+        DetectionPipeline::new(Vec::new())
+            .with_policy(policy)
+            .process(text, candidates)
+            .into_iter()
+            .map(|d| (d.value, d.entity_type, d.start, d.enabled))
+            .collect()
+    }
+    fn types(entries: &[(EntityType, TypeAction)]) -> DetectionPolicy {
+        DetectionPolicy {
+            types: entries.iter().copied().collect(),
+            ranges: None,
+        }
+    }
+
+    #[test]
+    fn hide_overrides_date_default_and_birth_date_has_its_own_key() {
+        let text = "Signed 12/03/2024. Born: 01/02/1990.";
+        let candidates = || {
+            vec![
+                at(
+                    text,
+                    "12/03/2024",
+                    0,
+                    EntityType::Date,
+                    DetectionSource::Rule,
+                ),
+                at(
+                    text,
+                    "01/02/1990",
+                    0,
+                    EntityType::Date,
+                    DetectionSource::Rule,
+                ),
+            ]
+        };
+        let enabled = |policy| {
+            run(text, policy, candidates())
+                .into_iter()
+                .map(|(_, kind, _, enabled)| (kind, enabled))
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(
+            enabled(DetectionPolicy::default()),
+            [(EntityType::Date, false), (EntityType::BirthDate, true)]
+        );
+        assert_eq!(
+            enabled(types(&[(EntityType::Date, TypeAction::Hide)])),
+            [(EntityType::Date, true), (EntityType::BirthDate, true)]
+        );
+        assert_eq!(
+            enabled(types(&[
+                (EntityType::Date, TypeAction::Hide),
+                (EntityType::BirthDate, TypeAction::Keep)
+            ])),
+            [(EntityType::Date, true), (EntityType::BirthDate, false)]
+        );
+    }
+
+    #[test]
+    fn off_type_cannot_displace_the_person_inside_it() {
+        let text = "Send to c/o Maria Lopez, 12 Calle Mayor today.";
+        let candidates = || {
+            vec![
+                at(
+                    text,
+                    "c/o Maria Lopez, 12 Calle Mayor",
+                    0,
+                    EntityType::Address,
+                    DetectionSource::Model,
+                ),
+                at(
+                    text,
+                    "Maria Lopez",
+                    0,
+                    EntityType::Person,
+                    DetectionSource::Model,
+                ),
+            ]
+        };
+        let address = (
+            "c/o Maria Lopez, 12 Calle Mayor".to_owned(),
+            EntityType::Address,
+            8,
+        );
+        assert_eq!(
+            run(text, DetectionPolicy::default(), candidates()),
+            [(address.0.clone(), address.1, address.2, true)]
+        );
+        assert_eq!(
+            run(
+                text,
+                types(&[(EntityType::Address, TypeAction::Off)]),
+                candidates()
+            ),
+            [("Maria Lopez".to_owned(), EntityType::Person, 12, true)]
+        );
+        // Keep still wins the overlap, as hosts disabling it afterwards did.
+        assert_eq!(
+            run(
+                text,
+                types(&[(EntityType::Address, TypeAction::Keep)]),
+                candidates()
+            ),
+            [(address.0, address.1, address.2, false)]
+        );
+    }
+
+    #[test]
+    fn ranges_drop_outside_spans_and_their_propagated_copies() {
+        let text = "Maria Lopez called.\nLater Maria Lopez wrote to John Smith.";
+        let second = text.find("Later").unwrap();
+        let smith = text.find("Smith").unwrap();
+        let candidates = || {
+            vec![
+                at(
+                    text,
+                    "Maria Lopez",
+                    0,
+                    EntityType::Person,
+                    DetectionSource::Model,
+                ),
+                at(
+                    text,
+                    "Maria Lopez",
+                    second,
+                    EntityType::Person,
+                    DetectionSource::Model,
+                ),
+                at(
+                    text,
+                    "John Smith",
+                    0,
+                    EntityType::Person,
+                    DetectionSource::Model,
+                ),
+            ]
+        };
+        let policy = |ranges| DetectionPolicy {
+            types: HashMap::new(),
+            ranges: Some(ranges),
+        };
+        let found = |ranges| {
+            run(text, policy(ranges), candidates())
+                .into_iter()
+                .map(|(value, _, start, enabled)| (value, start, enabled))
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(
+            found(vec![(second, text.len())]),
+            [
+                ("Maria Lopez".to_owned(), second + 6, true),
+                ("John Smith".to_owned(), smith - 5, true)
+            ]
+        );
+        // A name crossing the range's start is kept whole.
+        assert_eq!(
+            found(vec![(smith, text.len())]),
+            [("John Smith".to_owned(), smith - 5, true)]
+        );
+    }
+
+    #[test]
+    fn dictionary_terms_follow_ranges_but_not_types() {
+        let text = "Falcon one. Falcon two.";
+        let candidates = || {
+            vec![
+                at(
+                    text,
+                    "Falcon",
+                    0,
+                    EntityType::Custom,
+                    DetectionSource::Dictionary,
+                ),
+                at(
+                    text,
+                    "Falcon",
+                    1,
+                    EntityType::Custom,
+                    DetectionSource::Dictionary,
+                ),
+            ]
+        };
+        let off = types(&[(EntityType::Custom, TypeAction::Off)]);
+        assert_eq!(run(text, off.clone(), candidates()).len(), 2);
+        let starts: Vec<_> = run(
+            text,
+            DetectionPolicy {
+                ranges: Some(vec![(10, text.len())]),
+                ..off
+            },
+            candidates(),
+        )
+        .into_iter()
+        .map(|(_, _, start, _)| start)
+        .collect();
+        assert_eq!(starts, [12]);
+    }
+
+    #[test]
+    fn policy_check_names_the_bad_range() {
+        let text = "Hi 张三";
+        let check = |ranges| {
+            DetectionPolicy {
+                types: HashMap::new(),
+                ranges,
+            }
+            .check(text)
+        };
+        assert_eq!(check(None), Ok(()));
+        assert_eq!(check(Some(vec![(0, 3), (3, 9)])), Ok(()));
+        assert!(check(Some(vec![])).unwrap_err().contains("empty"));
+        assert!(check(Some(vec![(3, 3)]))
+            .unwrap_err()
+            .contains("start must be less"));
+        assert!(check(Some(vec![(0, 10)]))
+            .unwrap_err()
+            .contains("outside the text"));
+        assert!(check(Some(vec![(0, 3), (3, 5)]))
+            .unwrap_err()
+            .starts_with("range 1 [3, 5) is not on UTF-8 character boundaries"));
+    }
+
     #[test]
     fn priority_and_propagation() {
         let r = resolve_overlaps(&[

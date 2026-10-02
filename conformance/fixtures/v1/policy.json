@@ -1,0 +1,697 @@
+{
+  "schema_version": 1,
+  "license": "Apache-2.0",
+  "source": "hand-written inputs; expected detections from the Rust DetectionPipeline with a DetectionPolicy, checked by hand",
+  "cases": [
+    {
+      "name": "no_policy_keeps_current_defaults",
+      "text": "Signed 12/03/2024 by Ana Ruiz. Born: 01/02/1990.",
+      "dictionary": [],
+      "candidates": [
+        {
+          "type": "PERSON",
+          "value": "Ana Ruiz",
+          "start_utf8": 21,
+          "end_utf8": 29,
+          "start_utf16": 21,
+          "end_utf16": 29,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "expected": [
+        {
+          "type": "DATE",
+          "value": "12/03/2024",
+          "start_utf8": 7,
+          "end_utf8": 17,
+          "start_utf16": 7,
+          "end_utf16": 17,
+          "confidence": 0.85,
+          "detector": "regex:universal:date_numeric",
+          "source": "strongRule",
+          "enabled": false
+        },
+        {
+          "type": "PERSON",
+          "value": "Ana Ruiz",
+          "start_utf8": 21,
+          "end_utf8": 29,
+          "start_utf16": 21,
+          "end_utf16": 29,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "BIRTH_DATE",
+          "value": "01/02/1990",
+          "start_utf8": 37,
+          "end_utf8": 47,
+          "start_utf16": 37,
+          "end_utf16": 47,
+          "confidence": 0.85,
+          "detector": "regex:universal:date_numeric",
+          "source": "strongRule",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "date_hide_leaves_birth_date_to_its_own_key",
+      "text": "Signed 12/03/2024 by Ana Ruiz. Born: 01/02/1990.",
+      "dictionary": [],
+      "candidates": [
+        {
+          "type": "PERSON",
+          "value": "Ana Ruiz",
+          "start_utf8": 21,
+          "end_utf8": 29,
+          "start_utf16": 21,
+          "end_utf16": 29,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "policy": {
+        "types": {
+          "DATE": "hide"
+        }
+      },
+      "expected": [
+        {
+          "type": "DATE",
+          "value": "12/03/2024",
+          "start_utf8": 7,
+          "end_utf8": 17,
+          "start_utf16": 7,
+          "end_utf16": 17,
+          "confidence": 0.85,
+          "detector": "regex:universal:date_numeric",
+          "source": "strongRule",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "Ana Ruiz",
+          "start_utf8": 21,
+          "end_utf8": 29,
+          "start_utf16": 21,
+          "end_utf16": 29,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "BIRTH_DATE",
+          "value": "01/02/1990",
+          "start_utf8": 37,
+          "end_utf8": 47,
+          "start_utf16": 37,
+          "end_utf16": 47,
+          "confidence": 0.85,
+          "detector": "regex:universal:date_numeric",
+          "source": "strongRule",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "date_and_birth_date_keys_are_independent",
+      "text": "Signed 12/03/2024 by Ana Ruiz. Born: 01/02/1990.",
+      "dictionary": [],
+      "candidates": [
+        {
+          "type": "PERSON",
+          "value": "Ana Ruiz",
+          "start_utf8": 21,
+          "end_utf8": 29,
+          "start_utf16": 21,
+          "end_utf16": 29,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "policy": {
+        "types": {
+          "DATE": "hide",
+          "BIRTH_DATE": "keep",
+          "PERSON": "keep"
+        }
+      },
+      "expected": [
+        {
+          "type": "DATE",
+          "value": "12/03/2024",
+          "start_utf8": 7,
+          "end_utf8": 17,
+          "start_utf16": 7,
+          "end_utf16": 17,
+          "confidence": 0.85,
+          "detector": "regex:universal:date_numeric",
+          "source": "strongRule",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "Ana Ruiz",
+          "start_utf8": 21,
+          "end_utf8": 29,
+          "start_utf16": 21,
+          "end_utf16": 29,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": false
+        },
+        {
+          "type": "BIRTH_DATE",
+          "value": "01/02/1990",
+          "start_utf8": 37,
+          "end_utf8": 47,
+          "start_utf16": 37,
+          "end_utf16": 47,
+          "confidence": 0.85,
+          "detector": "regex:universal:date_numeric",
+          "source": "strongRule",
+          "enabled": false
+        }
+      ]
+    },
+    {
+      "name": "address_off_cannot_displace_inner_person",
+      "text": "Send to c/o Maria Lopez, 12 Calle Mayor today.",
+      "dictionary": [],
+      "candidates": [
+        {
+          "type": "ADDRESS",
+          "value": "c/o Maria Lopez, 12 Calle Mayor",
+          "start_utf8": 8,
+          "end_utf8": 39,
+          "start_utf16": 8,
+          "end_utf16": 39,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "Maria Lopez",
+          "start_utf8": 12,
+          "end_utf8": 23,
+          "start_utf16": 12,
+          "end_utf16": 23,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "policy": {
+        "types": {
+          "ADDRESS": "off"
+        }
+      },
+      "expected": [
+        {
+          "type": "PERSON",
+          "value": "Maria Lopez",
+          "start_utf8": 12,
+          "end_utf8": 23,
+          "start_utf16": 12,
+          "end_utf16": 23,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "address_keep_still_wins_overlap_but_stays_visible",
+      "text": "Send to c/o Maria Lopez, 12 Calle Mayor today.",
+      "dictionary": [],
+      "candidates": [
+        {
+          "type": "ADDRESS",
+          "value": "c/o Maria Lopez, 12 Calle Mayor",
+          "start_utf8": 8,
+          "end_utf8": 39,
+          "start_utf16": 8,
+          "end_utf16": 39,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "Maria Lopez",
+          "start_utf8": 12,
+          "end_utf8": 23,
+          "start_utf16": 12,
+          "end_utf16": 23,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "policy": {
+        "types": {
+          "ADDRESS": "keep"
+        }
+      },
+      "expected": [
+        {
+          "type": "ADDRESS",
+          "value": "c/o Maria Lopez, 12 Calle Mayor",
+          "start_utf8": 8,
+          "end_utf8": 39,
+          "start_utf16": 8,
+          "end_utf16": 39,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": false
+        }
+      ]
+    },
+    {
+      "name": "ranges_skip_first_paragraph_and_its_propagated_copies",
+      "text": "Maria Lopez called.\nLater Maria Lopez wrote to John Smith.",
+      "dictionary": [],
+      "candidates": [
+        {
+          "type": "PERSON",
+          "value": "Maria Lopez",
+          "start_utf8": 0,
+          "end_utf8": 11,
+          "start_utf16": 0,
+          "end_utf16": 11,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "Maria Lopez",
+          "start_utf8": 26,
+          "end_utf8": 37,
+          "start_utf16": 26,
+          "end_utf16": 37,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "John Smith",
+          "start_utf8": 47,
+          "end_utf8": 57,
+          "start_utf16": 47,
+          "end_utf16": 57,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "policy": {
+        "ranges_utf8": [
+          [
+            20,
+            58
+          ]
+        ],
+        "ranges_utf16": [
+          [
+            20,
+            58
+          ]
+        ]
+      },
+      "expected": [
+        {
+          "type": "PERSON",
+          "value": "Maria Lopez",
+          "start_utf8": 26,
+          "end_utf8": 37,
+          "start_utf16": 26,
+          "end_utf16": 37,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "John Smith",
+          "start_utf8": 47,
+          "end_utf8": 57,
+          "start_utf16": 47,
+          "end_utf16": 57,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "name_crossing_range_start_is_kept_whole",
+      "text": "Maria Lopez called.\nLater Maria Lopez wrote to John Smith.",
+      "dictionary": [],
+      "candidates": [
+        {
+          "type": "PERSON",
+          "value": "Maria Lopez",
+          "start_utf8": 0,
+          "end_utf8": 11,
+          "start_utf16": 0,
+          "end_utf16": 11,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "Maria Lopez",
+          "start_utf8": 26,
+          "end_utf8": 37,
+          "start_utf16": 26,
+          "end_utf16": 37,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "John Smith",
+          "start_utf8": 47,
+          "end_utf8": 57,
+          "start_utf16": 47,
+          "end_utf16": 57,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "policy": {
+        "ranges_utf8": [
+          [
+            52,
+            58
+          ]
+        ],
+        "ranges_utf16": [
+          [
+            52,
+            58
+          ]
+        ]
+      },
+      "expected": [
+        {
+          "type": "PERSON",
+          "value": "John Smith",
+          "start_utf8": 47,
+          "end_utf8": 57,
+          "start_utf16": 47,
+          "end_utf16": 57,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "dictionary_ignores_types_but_follows_ranges",
+      "text": "Project Falcon: write to ops@falcon.example. Falcon ships soon.",
+      "dictionary": [
+        "Falcon"
+      ],
+      "candidates": [],
+      "policy": {
+        "types": {
+          "CUSTOM": "off",
+          "EMAIL": "off"
+        },
+        "ranges_utf8": [
+          [
+            0,
+            43
+          ]
+        ],
+        "ranges_utf16": [
+          [
+            0,
+            43
+          ]
+        ]
+      },
+      "expected": [
+        {
+          "type": "CUSTOM",
+          "value": "Falcon",
+          "start_utf8": 8,
+          "end_utf8": 14,
+          "start_utf16": 8,
+          "end_utf16": 14,
+          "confidence": 1.0,
+          "detector": "dictionary",
+          "source": "dictionary",
+          "enabled": true
+        },
+        {
+          "type": "CUSTOM",
+          "value": "falcon",
+          "start_utf8": 29,
+          "end_utf8": 35,
+          "start_utf16": 29,
+          "end_utf16": 35,
+          "confidence": 1.0,
+          "detector": "dictionary",
+          "source": "dictionary",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "utf16_ranges_around_emoji_and_cjk",
+      "text": "😀 张三 met 李四 on 2024-03-12.",
+      "dictionary": [],
+      "candidates": [
+        {
+          "type": "PERSON",
+          "value": "张三",
+          "start_utf8": 5,
+          "end_utf8": 11,
+          "start_utf16": 3,
+          "end_utf16": 5,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "PERSON",
+          "value": "李四",
+          "start_utf8": 16,
+          "end_utf8": 22,
+          "start_utf16": 10,
+          "end_utf16": 12,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "policy": {
+        "types": {
+          "DATE": "hide"
+        },
+        "ranges_utf8": [
+          [
+            16,
+            37
+          ]
+        ],
+        "ranges_utf16": [
+          [
+            10,
+            27
+          ]
+        ]
+      },
+      "expected": [
+        {
+          "type": "PERSON",
+          "value": "李四",
+          "start_utf8": 16,
+          "end_utf8": 22,
+          "start_utf16": 10,
+          "end_utf16": 12,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        },
+        {
+          "type": "DATE",
+          "value": "2024-03-12",
+          "start_utf8": 26,
+          "end_utf8": 36,
+          "start_utf16": 16,
+          "end_utf16": 26,
+          "confidence": 0.8,
+          "detector": "regex:universal:date_iso",
+          "source": "strongRule",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "unknown_type_is_rejected",
+      "text": "Hi 😀 Ana Ruiz",
+      "dictionary": [],
+      "candidates": [
+        {
+          "type": "PERSON",
+          "value": "Ana Ruiz",
+          "start_utf8": 8,
+          "end_utf8": 16,
+          "start_utf16": 6,
+          "end_utf16": 14,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "policy": {
+        "types": {
+          "PEOPLE": "off"
+        }
+      },
+      "error": "invalid_argument"
+    },
+    {
+      "name": "empty_range_is_rejected",
+      "text": "Hi 😀 Ana Ruiz",
+      "dictionary": [],
+      "candidates": [
+        {
+          "type": "PERSON",
+          "value": "Ana Ruiz",
+          "start_utf8": 8,
+          "end_utf8": 16,
+          "start_utf16": 6,
+          "end_utf16": 14,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "policy": {
+        "ranges_utf8": [
+          [
+            3,
+            3
+          ]
+        ],
+        "ranges_utf16": [
+          [
+            3,
+            3
+          ]
+        ]
+      },
+      "error": "invalid_argument"
+    },
+    {
+      "name": "range_beyond_text_is_rejected",
+      "text": "Hi 😀 Ana Ruiz",
+      "dictionary": [],
+      "candidates": [
+        {
+          "type": "PERSON",
+          "value": "Ana Ruiz",
+          "start_utf8": 8,
+          "end_utf8": 16,
+          "start_utf16": 6,
+          "end_utf16": 14,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "policy": {
+        "ranges_utf8": [
+          [
+            0,
+            17
+          ]
+        ],
+        "ranges_utf16": [
+          [
+            0,
+            15
+          ]
+        ]
+      },
+      "error": "invalid_argument"
+    },
+    {
+      "name": "range_inside_a_character_is_rejected",
+      "text": "Hi 😀 Ana Ruiz",
+      "dictionary": [],
+      "candidates": [
+        {
+          "type": "PERSON",
+          "value": "Ana Ruiz",
+          "start_utf8": 8,
+          "end_utf8": 16,
+          "start_utf16": 6,
+          "end_utf16": 14,
+          "confidence": 0.9,
+          "detector": "fixture:model",
+          "source": "model",
+          "enabled": true
+        }
+      ],
+      "policy": {
+        "ranges_utf8": [
+          [
+            5,
+            16
+          ]
+        ],
+        "ranges_utf16": [
+          [
+            4,
+            14
+          ]
+        ]
+      },
+      "error": "invalid_argument"
+    }
+  ]
+}

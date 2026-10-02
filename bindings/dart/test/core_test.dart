@@ -91,6 +91,89 @@ void main() {
     }
   }, skip: skip);
 
+  test('policies reproduce the shared fixture in UTF-16 offsets', () {
+    for (final c in _cases(_fixture('policy.json'))) {
+      final name = c['name'] as String;
+      final text = c['text']! as String;
+      final dictionary = (c['dictionary']! as List<Object?>).cast<String>();
+      final candidates = [
+        for (final d in (c['candidates']! as List<Object?>).cast<Map>())
+          _detection(d.cast()),
+      ];
+      final policy = (c['policy'] as Map?)?.cast<String, Object?>();
+      final ranges = [
+        for (final r in (policy?['ranges_utf16'] as List<Object?>? ?? const []))
+          (r! as List<Object?>).cast<int>(),
+      ];
+      if (c['error'] != null) {
+        // Offsets that split a character or leave the text fail in the
+        // binding; everything else must reach Rust.
+        final index = OffsetIndex(text);
+        bool converts(int offset) {
+          try {
+            index.toUtf8(offset);
+            return true;
+          } on RangeError {
+            return false;
+          }
+        }
+
+        final inBinding = !ranges.every((r) => r.every(converts));
+        // Raw JSON, since the typed API cannot name an unknown type.
+        expect(
+          () => core.native.detect({
+            'text': text,
+            'regions': const <String>[],
+            'dictionary': dictionary,
+            'detections': [for (final d in candidates) d.toJson()],
+            'policy': {
+              if (policy!['types'] != null) 'types': policy['types'],
+              if (policy['ranges_utf16'] != null) 'ranges': ranges,
+            },
+          }),
+          throwsA(
+            inBinding
+                ? isA<RangeError>()
+                : isA<DocudisException>().having(
+                    (e) => e.status,
+                    'status',
+                    DocudisStatus.invalidArgument,
+                  ),
+          ),
+          reason: name,
+        );
+        continue;
+      }
+      final detected = core.detect(
+        text,
+        regions: const {},
+        dictionary: dictionary,
+        detections: candidates,
+        policy: policy == null
+            ? null
+            : DetectionPolicy(
+                types: {
+                  for (final MapEntry(:key, :value)
+                      in ((policy['types'] as Map?) ?? const {}).entries)
+                    EntityType.fromName(key as String)!: TypeAction.values
+                        .byName(value as String),
+                },
+                ranges: policy['ranges_utf16'] == null
+                    ? null
+                    : [for (final r in ranges) (start: r[0], end: r[1])],
+              ),
+      );
+      expect(
+        [for (final d in detected) d.toJson()],
+        [
+          for (final d in (c['expected']! as List<Object?>).cast<Map>())
+            _detection(d.cast()).toJson(),
+        ],
+        reason: name,
+      );
+    }
+  }, skip: skip);
+
   test('regions reproduce the Dart reference', () {
     for (final c in _cases(_fixture('regions.json'))) {
       expect(

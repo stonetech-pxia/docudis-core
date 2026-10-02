@@ -69,8 +69,18 @@ DOCUDIS_API DocudisV1Status docudis_v1_anonymize_json(
  * Input schema:
  *   {"schema_version":1,"text":"...","regions":["fr"],
  *    "dictionary":["..."],"never_hide":["..."],
- *    "include_bundled_lists":false,"detections":[...]}
+ *    "include_bundled_lists":false,"detections":[...],
+ *    "policy":{"types":{"DATE":"hide","ADDRESS":"keep","URL":"off"},
+ *              "ranges":[[0,120]]}}
  * Output: {"schema_version":1,"detections":[...]}
+ *
+ * `policy` (library version 0.2.0 or later; older ones ignore it) applies to
+ * every source. `types`: "hide" enables a type, "keep" leaves it visible but
+ * still lets it win overlaps, "off" drops it before overlaps are resolved;
+ * dictionary terms and manual spans ignore `types`. `ranges`: half-open
+ * UTF-8 byte ranges to process; detections touching none are dropped, also
+ * propagated copies. An unknown type or action, or an empty, reversed,
+ * out-of-text or mid-character range fails with DOCUDIS_V1_INVALID_ARGUMENT.
  */
 DOCUDIS_API DocudisV1Status docudis_v1_detect_json(
     const uint8_t *input,

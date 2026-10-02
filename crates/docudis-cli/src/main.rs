@@ -1,8 +1,8 @@
 // Copyright 2026 the Docudis contributors. Licensed under Apache-2.0.
 
 use docudis_core::{
-    anonymize, BundledListDetector, Detection, DetectionPipeline, DictionaryDetector, MappingEntry,
-    PlaceholderMap, RegexDetector,
+    anonymize, BundledListDetector, Detection, DetectionPipeline, DetectionPolicy,
+    DictionaryDetector, EntityType, MappingEntry, PlaceholderMap, RegexDetector,
 };
 use serde::Serialize;
 use serde_json::Value;
@@ -44,6 +44,7 @@ struct Options {
     ner_file: Option<String>,
     map_file: Option<String>,
     bundled_lists: bool,
+    policy: DetectionPolicy,
 }
 
 fn main() {
@@ -84,6 +85,26 @@ fn run() -> Result<(), String> {
                 options.ner_file = Some(args.next().ok_or("--ner-detections requires a JSON file")?)
             }
             "--map" => options.map_file = Some(args.next().ok_or("--map requires a JSON file")?),
+            "--type" => {
+                let value = args.next().ok_or("--type requires TYPE=hide|keep|off")?;
+                let (name, action) = value
+                    .split_once('=')
+                    .ok_or("--type requires TYPE=hide|keep|off")?;
+                let entity_type: EntityType = name.parse()?;
+                options.policy.types.insert(entity_type, action.parse()?);
+            }
+            "--range" => {
+                let value = args.next().ok_or("--range requires START:END")?;
+                let (start, end) = value
+                    .split_once(':')
+                    .and_then(|(a, b)| Some((a.parse().ok()?, b.parse().ok()?)))
+                    .ok_or("--range requires START:END byte offsets")?;
+                options
+                    .policy
+                    .ranges
+                    .get_or_insert_with(Vec::new)
+                    .push((start, end));
+            }
             "-h" | "--help" => {
                 help();
                 return Ok(());
@@ -101,6 +122,7 @@ fn run() -> Result<(), String> {
     if options.restore {
         return restore_command(&text, &options);
     }
+    options.policy.check(&text)?;
     let mut candidates = RegexDetector::bundled(options.regions.as_ref(), None)
         .map_err(|e| e.to_string())?
         .detect_sync(&text)
@@ -116,7 +138,9 @@ fn run() -> Result<(), String> {
     if let Some(path) = options.ner_file.as_deref() {
         candidates.extend(read_detections(path)?)
     }
-    let detections = DetectionPipeline::new(options.never_hide.clone()).process(&text, candidates);
+    let detections = DetectionPipeline::new(options.never_hide.clone())
+        .with_policy(options.policy.clone())
+        .process(&text, candidates);
     if options.detect_only {
         if options.json {
             println!(
@@ -221,5 +245,5 @@ fn restore_command(text: &str, options: &Options) -> Result<(), String> {
     Ok(())
 }
 fn help() {
-    println!("Docudis Core CLI\n\nUsage:\n  docudis [OPTIONS] [TEXT]\n  printf TEXT | docudis [OPTIONS]\n\nOptions:\n  --regions fr,gb       Load global rules plus selected region packs\n  --dictionary TERM     Always hide a user term (repeatable)\n  --never-hide TERM     Keep a public term visible (repeatable)\n  --bundled-lists       Enable bundled company/place lists\n  --ner-detections FILE Merge external UTF-8-offset NER detection JSON\n  --detect-only         Print detections instead of anonymizing\n  --restore --map FILE  Restore placeholders using mapping JSON\n  --map FILE            Previous map for anonymization\n  --json                Emit schema-versioned JSON\n\nWithout --ner-detections, only rules and requested lists/dictionary run.\nAll offsets are half-open UTF-8 byte offsets.")
+    println!("Docudis Core CLI\n\nUsage:\n  docudis [OPTIONS] [TEXT]\n  printf TEXT | docudis [OPTIONS]\n\nOptions:\n  --regions fr,gb       Load global rules plus selected region packs\n  --dictionary TERM     Always hide a user term (repeatable)\n  --never-hide TERM     Keep a public term visible (repeatable)\n  --bundled-lists       Enable bundled company/place lists\n  --ner-detections FILE Merge external UTF-8-offset NER detection JSON\n  --type TYPE=ACTION    hide, keep (visible) or off (ignore) a type (repeatable)\n  --range START:END     Only process these UTF-8 byte offsets (repeatable)\n  --detect-only         Print detections instead of anonymizing\n  --restore --map FILE  Restore placeholders using mapping JSON\n  --map FILE            Previous map for anonymization\n  --json                Emit schema-versioned JSON\n\nWithout --ner-detections, only rules and requested lists/dictionary run.\nAll offsets are half-open UTF-8 byte offsets.")
 }

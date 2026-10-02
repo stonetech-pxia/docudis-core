@@ -47,7 +47,8 @@ dart test
 The shared fixtures cover all rule packs and entity categories plus ASCII,
 CJK, emoji, combining characters, NBSP, validators/hard negatives, overlap
 priority, never-hide, repair, propagation, external NER spans, previous maps,
-disabled detections, person variants, and exact/tolerant restoration.
+disabled detections, person variants, detection policies, and exact/tolerant
+restoration.
 
 ## Offset contract
 
@@ -76,7 +77,9 @@ printf 'Call Alice' | cargo run -p docudis-cli -- \
 ```
 
 `--ner-detections FILE` merges host-produced UTF-8 spans; without it the CLI
-does not claim to run NER. `--restore --map FILE` restores placeholders.
+does not claim to run NER. `--type DATE=hide` (or `keep`, `off`) and
+`--range START:END` (UTF-8 bytes) set the detection policy below; both repeat.
+`--restore --map FILE` restores placeholders.
 
 ## C ABI
 
@@ -129,6 +132,39 @@ Example request:
   ]
 }
 ```
+
+### Detection policy
+
+`docudis_v1_detect_json` and `docudis_v1_process_json` accept an optional
+`policy` saying what to hide, whichever rule, list or model found it:
+
+```json
+{
+  "schema_version": 1,
+  "text": "...",
+  "policy": {
+    "types": { "DATE": "hide", "ADDRESS": "keep", "URL": "off" },
+    "ranges": [[1200, 5400], [8000, 9100]]
+  }
+}
+```
+
+- `types` maps `EntityType` names to `hide` (enabled, overriding the default
+  that leaves dates and amounts visible), `keep` (detected and still winning
+  overlaps, but disabled) or `off` (dropped before overlaps are resolved, so
+  it cannot displace a span inside it). `DATE` and `BIRTH_DATE` are separate
+  keys. Dictionary terms and manual spans ignore `types`. `never_hide` still
+  wins over `hide`.
+- `ranges` are half-open UTF-8 byte ranges. A detection touching any range
+  is kept whole; others are dropped, including values propagated from inside
+  the ranges. Omit `ranges` to process the whole text; an empty list is an
+  error.
+- Unknown type names or actions and ranges that are empty, reversed, beyond
+  the text or not on character boundaries fail with
+  `DOCUDIS_V1_INVALID_ARGUMENT`.
+- Without `policy` (or with `null`) output is unchanged. **The policy needs
+  Core 0.2.0 or later** (`docudis_v1_version()`); older libraries silently
+  ignore the field, so hosts must pin Core or check the version.
 
 ## Deliberate boundary
 

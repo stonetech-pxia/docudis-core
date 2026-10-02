@@ -151,6 +151,44 @@ class Detection {
       '${type.placeholderName}[$start:$end] ${confidence.toStringAsFixed(2)} $detector';
 }
 
+/// What to do with every detection of one [EntityType] (see
+/// [DetectionPolicy]).
+enum TypeAction {
+  /// Hide it, even where the defaults would only show it (dates, amounts).
+  hide,
+
+  /// Detect it and let it win overlaps, but leave it visible.
+  keep,
+
+  /// Ignore it entirely, so it cannot displace other detections.
+  off,
+}
+
+/// What the user wants hidden, whichever detector or model found it.
+/// [types] does not apply to dictionary terms or manual spans; [ranges]
+/// applies to everything.
+class DetectionPolicy {
+  const DetectionPolicy({this.types = const {}, this.ranges});
+
+  final Map<EntityType, TypeAction> types;
+
+  /// Half-open UTF-16 ranges of the text to process; `null` processes all
+  /// of it. A detection touching any range is kept whole, and nothing is
+  /// propagated outside them. Must not be empty.
+  final List<({int start, int end})>? ranges;
+
+  /// The schema-v1 policy object, with UTF-16 offsets.
+  Map<String, Object?> toJson() => {
+    'types': {
+      for (final e in types.entries) e.key.placeholderName: e.value.name,
+    },
+    if (ranges != null)
+      'ranges': [
+        for (final r in ranges!) [r.start, r.end],
+      ],
+  };
+}
+
 /// One reversible mapping: an original value and the placeholder it became.
 class MappingEntry {
   const MappingEntry({

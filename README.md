@@ -68,6 +68,11 @@ change in place. All C ABI offsets are half-open UTF-8 byte offsets. The Dart
 adapter converts to and from UTF-16 code-unit offsets and refuses to load a
 library with a different ABI version.
 
+Optional request fields are added within v1. Older libraries ignore fields
+they do not know, so a host that relies on one must pin Core or check
+`docudis_v1_version()`: the detection `policy` (types to hide, keep or
+ignore, and ranges to process) needs 0.2.0 or later.
+
 See [crates/README.md](crates/README.md) and
 [conformance/README.md](conformance/README.md) for detailed behavior and
 compatibility notes.

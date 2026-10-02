@@ -186,7 +186,10 @@ class DocudisNative {
     final text = request['text']! as String;
     final detections = request['detections'] as List<Object?>?;
     final taken = request['taken'] as List<Object?>?;
-    final index = convert && (detections != null || taken != null)
+    final policy = (request['policy'] as Map?)?.cast<String, Object?>();
+    final ranges = policy?['ranges'] as List<Object?>?;
+    final index =
+        convert && (detections != null || taken != null || ranges != null)
         ? OffsetIndex(text)
         : null;
     return {
@@ -202,6 +205,14 @@ class DocudisNative {
           for (final r in taken)
             _rangeToUtf8(index, (r! as Map).cast<String, Object?>()),
         ],
+      if (index != null && ranges != null)
+        'policy': {
+          ...policy!,
+          'ranges': [
+            for (final r in ranges.cast<List<Object?>>())
+              [index.toUtf8(r[0]! as int), index.toUtf8(r[1]! as int)],
+          ],
+        },
     };
   }
 

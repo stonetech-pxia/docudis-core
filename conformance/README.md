@@ -15,6 +15,12 @@ The v1 directory contains these language-neutral compatibility sources:
   `RegexDetector.regionsForLanguages`, `ReplyMatcher`) on hand-written cases,
   with taken spans from the rule pipeline. `reply_check.json` also lists the
   candidate documents every check runs against.
+- `policy.json`: detection policies (`types` hide/keep/off, `ranges`) on
+  hand-written cases, run through `docudis_v1_detect_json` with the universal
+  rules, a dictionary and model candidates. Ranges are given in both offset
+  systems; error cases expect `InvalidArgument` (or, in Dart, a `RangeError`
+  for UTF-16 offsets that split a character or leave the text). Expected
+  output was produced by the Rust pipeline and checked by hand.
 
 Every detection and replacement records both:
 

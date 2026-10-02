@@ -100,7 +100,7 @@ dependencies = [
 
 [[package]]
 name = "docudis-capi"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "docudis-core",
  "serde",
@@ -109,7 +109,7 @@ dependencies = [
 
 [[package]]
 name = "docudis-cli"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "docudis-core",
  "serde",
@@ -118,7 +118,7 @@ dependencies = [
 
 [[package]]
 name = "docudis-core"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "fancy-regex",
  "lingua",
