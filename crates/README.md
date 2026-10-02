@@ -1,11 +1,10 @@
-# Docudis Rust core — non-inference migration
+# Docudis Rust core
 
-This workspace is the first vertical slice of the gradual Dart-to-Rust
-migration. The Flutter app still keeps `packages/docudis_engine` as its
-production reference and fallback; the Dart FFI package supports differential
-execution without unconditionally changing the production path.
+Core began as a Rust port of the Dart engine in docudis-android
+(`packages/docudis_engine`). The Dart FFI package keeps a differential runner
+that executes both implementations and reports where they disagree.
 
-All new Rust crates are licensed under Apache-2.0. The placeholder and restore
+All Rust crates are licensed under Apache-2.0. The placeholder and restore
 behavior was migrated from the Dart implementation that includes
 DocCloak.Core-derived code. The required copyright and attribution are retained
 in each crate's `NOTICE` and in

@@ -5,6 +5,24 @@ for Docudis. This repository intentionally has no dependency on Flutter,
 Android application code, OCR, PDF processing, ML Kit, ONNX Runtime, or
 model tokenizers.
 
+Docudis replaces personal data in a document with numbered placeholders on the
+user's device, so the text can be given to an AI service, and puts the
+original values back into the AI's reply. Core is the part that decides what
+is hidden and how it is restored. It runs fully offline and makes no network
+requests; whether anything leaves the device is decided by the apps below,
+which are open source as well.
+
+## Related repositories
+
+| Repository | Role | License |
+|---|---|---|
+| [docudis-core](https://github.com/stonetech-pxia/docudis-core) (this one) | Rules, lists, pipeline, anonymization, restoration, C ABI | Apache-2.0 |
+| [docudis-ner](https://github.com/stonetech-pxia/docudis-ner) | Tokenizers, windowing, decoding, and inference for NER models | Apache-2.0 |
+| [docudis-android](https://github.com/stonetech-pxia/docudis-android) | Android app | AGPL-3.0, commercial license available |
+| [docudis-desktop](https://github.com/stonetech-pxia/docudis-desktop) | Windows and macOS app | AGPL-3.0, commercial license available |
+
+Dependencies point one way: ner depends on Core, and the apps depend on both.
+
 ## Repository boundary
 
 - `crates/docudis-core`: rules, lists, dictionaries, pipeline/repair, offsets,
@@ -77,8 +95,37 @@ See [crates/README.md](crates/README.md) and
 [conformance/README.md](conformance/README.md) for detailed behavior and
 compatibility notes.
 
+## Limitations
+
+Detection is automatic, and no automatic detection finds all personal data.
+Review the result before sharing a document.
+
+- Rules and lists find structured values (emails, phone numbers, IDs, IBANs,
+  cards, and so on) and known names. Most personal names and free-form
+  addresses need an NER model from `docudis-ner`; Core alone does not find
+  them unless they are in the user's dictionary.
+- Dates and amounts are detected but left visible unless a policy says to hide
+  them.
+- Restoration relies on the AI keeping the placeholders recognizable. It
+  tolerates common changes to their formatting, but a placeholder that is
+  rewritten beyond that is not restored.
+
+## Security
+
+Please report vulnerabilities privately as described in
+[SECURITY.md](SECURITY.md). Missed detections that expose data and restores
+that put the wrong value back count as security issues.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Never put real personal data in an
+issue, a test, or a fixture.
+
 ## License
 
 Apache-2.0. The original DocCloak.Core copyright and attribution are retained
 in `LICENSE-DocCloak.Core` and `NOTICE-DocCloak.Core`.
+
+The Apache-2.0 license does not grant rights to the Docudis name or logo. A
+modified version must not be distributed under the Docudis name.
 

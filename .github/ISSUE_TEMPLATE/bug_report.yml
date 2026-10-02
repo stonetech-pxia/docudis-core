@@ -1,0 +1,37 @@
+name: Bug report
+description: Something is detected wrongly, missed, or restored wrongly
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Do not paste real personal data.** Replace every name, number, and
+        address with made-up values that still show the problem. Report data
+        leaks privately instead, as described in SECURITY.md.
+  - type: checkboxes
+    id: no-real-data
+    attributes:
+      label: Data
+      options:
+        - label: This report contains no real personal data.
+          required: true
+  - type: input
+    id: version
+    attributes:
+      label: Core version
+      description: Output of `docudis_v1_version()`, or the release tag.
+    validations:
+      required: true
+  - type: textarea
+    id: input
+    attributes:
+      label: Input
+      description: The text (made up), regions, and policy, or the CLI command.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual result
+    validations:
+      required: true

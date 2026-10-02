@@ -1,0 +1,21 @@
+name: Request
+description: A new rule, region, entity type, or API change
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Do not paste real personal data.** Use made-up examples.
+  - type: checkboxes
+    id: no-real-data
+    attributes:
+      label: Data
+      options:
+        - label: This request contains no real personal data.
+          required: true
+  - type: textarea
+    id: request
+    attributes:
+      label: What and why
+      description: For a new rule, include the format's specification and made-up examples.
+    validations:
+      required: true
