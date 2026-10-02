@@ -44,7 +44,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-linux-android,x86_64-linux-android
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4
       - run: cargo install cargo-ndk --locked
       - run: sdkmanager "ndk;27.0.12077973"
       - name: Build Android native libraries
