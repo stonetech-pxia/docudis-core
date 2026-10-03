@@ -1,5 +1,5 @@
 Docudis Core
-Copyright 2026 the Docudis contributors
+Copyright 2026 stonetech and the Docudis contributors
 
 This product includes software derived from DocCloak.Core.
 DocCloak.Core
@@ -8,3 +8,16 @@ Copyright 2026 Witold Lojek
 The DocCloak.Core attribution and license are preserved in
 NOTICE-DocCloak.Core and LICENSE-DocCloak.Core.
 
+Optional language identification
+The `language-id` feature builds in the lingua crate and its language models
+(Apache-2.0). lingua's authors trained those models on the Leipzig Corpora
+Collection (Wortschatz, Leipzig University), whose texts are licensed under
+CC BY-NC 4.0; the models contain n-gram statistics, not the texts.
+
+Earlier revisions
+Revisions before fb41dd1 also contained two third-party tokenizer files in
+testdata/tokenizers, since moved to docudis-ner:
+- sentencepiece.json: XLM-RoBERTa's SentencePiece vocabulary, MIT License,
+  Copyright (c) Facebook, Inc. and its affiliates.
+- wordpiece.json: multilingual BERT's WordPiece vocabulary, Apache-2.0,
+  Copyright 2018 The Google AI Language Team Authors.

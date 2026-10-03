@@ -14,8 +14,14 @@ snapshot directly.
   [DocCloak.Core](https://github.com/WLojek/DocCloak.Core) (Apache-2.0) and
   retain the attribution in the repository `NOTICE-DocCloak.Core` and
   `LICENSE-DocCloak.Core` files. Rules marked `"provenance": "docudis"` were
-  written for Docudis.
+  written for Docudis. Every file in `rules/`, `schema.json` included, has
+  been modified from its DocCloak.Core version: each rule gained a
+  `classification`, and `doccloakModified` rules say what changed in their
+  `description`.
 - `lists/companies.json` and `lists/places_zh.json`: organization and Chinese
   place names taken from [Wikidata](https://www.wikidata.org/), which is
   available under CC0. Each entry keeps its Wikidata item ID (`Q…`) so it can
-  be checked against the source.
+  be checked against the source. `scripts/fetch_bundled_lists.py` builds them;
+  the current files were queried in September 2026. Run it with
+  `--stage refilter` after changing its filter, to apply the filter without
+  querying Wikidata again.

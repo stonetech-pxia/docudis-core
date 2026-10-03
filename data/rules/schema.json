@@ -1,7 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/WLojek/DocCloak.Core/rules/schema.json",
-  "title": "DocCloak shared regex rule pack",
+  "$id": "https://github.com/stonetech-pxia/docudis-core/data/rules/schema.json",
+  "$comment": "Derived from DocCloak.Core's rules/schema.json (Apache-2.0, Copyright 2026 Witold Lojek) and modified by stonetech for Docudis: rule scope, classification and provenance fields, among others.",
+  "title": "Docudis regex rule pack",
   "description": "Canonical cross-runtime rule format (architecture doc section 6). One file per region plus universal.json. Patterns are restricted to the ECMAScript/Python common subset; flags live in the flags field (no inline flags); validate is a name resolved against the per-runtime validator registry (validators.ts / validators.py).",
   "type": "object",
   "additionalProperties": false,

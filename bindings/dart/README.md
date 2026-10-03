@@ -27,4 +27,4 @@ DOCUDIS_LIBRARY=../../target/debug/libdocudis_capi.dylib dart test
 
 This binding does not load or execute an NER model. DocCloak.Core attribution
 is preserved in `NOTICE` and in the repository's
-the repository `LICENSE-DocCloak.Core` and `NOTICE-DocCloak.Core` files.
+`LICENSE-DocCloak.Core` and `NOTICE-DocCloak.Core` files.
