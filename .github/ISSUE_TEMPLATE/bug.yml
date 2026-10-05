@@ -1,0 +1,28 @@
+name: Bug
+description: Something does not work, crashes or looks wrong.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Never attach real documents or screenshots that show personal data.** Issues are public; use made-up content.
+        A security problem goes to stonetechdigital@gmail.com instead.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected and what happened instead.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Docudis app and version, or docudis-core commit
+      placeholder: Docudis Desktop 0.1.0, or docudis-core 8cf8912
+    validations:
+      required: true
+  - type: textarea
+    id: more
+    attributes:
+      label: Anything else
+      description: File type, error message, steps that always reproduce it.

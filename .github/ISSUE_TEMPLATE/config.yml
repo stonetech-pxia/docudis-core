@@ -1,5 +1,1 @@
-blank_issues_enabled: false
-contact_links:
-  - name: Report a vulnerability or data leak
-    url: https://github.com/stonetech-pxia/docudis-core/security/advisories/new
-    about: Report privately. Do not open a public issue.
+blank_issues_enabled: true

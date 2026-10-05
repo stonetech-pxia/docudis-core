@@ -1,0 +1,36 @@
+name: Missed or wrong detection
+description: Docudis left a personal detail visible, or masked something it should not have.
+labels: [detection]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Never paste real personal data or real documents here.** Issues are public. Rewrite the example with made-up names, addresses and numbers, and check that Docudis still gets it wrong.
+  - type: textarea
+    id: text
+    attributes:
+      label: Example text (made up)
+      description: The shortest text that shows the problem, with made-up details only.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What Docudis did, and what you expected
+      placeholder: '"Marie Dupont" was not masked. / "Rue de la Paix" was masked as a person.'
+    validations:
+      required: true
+  - type: dropdown
+    id: language
+    attributes:
+      label: Language of the text
+      options: [English, French, Spanish, Chinese, Other]
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Docudis app and version, or docudis-core commit
+      placeholder: Docudis Desktop 0.1.0, or docudis-core 8cf8912
+    validations:
+      required: true
